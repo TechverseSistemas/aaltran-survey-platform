@@ -1,0 +1,114 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+const loginFormSchema = z.object({
+  username: z.string().nonempty('Usuário é obrigatório'),
+  password: z.string().nonempty('Senha é obrigatória'),
+  rememberMe: z.boolean(),
+});
+
+export default function LoginPage() {
+  const form = useForm<z.infer<typeof loginFormSchema>>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+      rememberMe: false,
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof loginFormSchema>) {
+    console.log(values);
+  }
+
+  return (
+    <Card className="w-full max-w-md border">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-center text-2xl font-bold">Bem-vindo</CardTitle>
+
+        <CardDescription className="text-center">
+          Entre com suas credenciais para acessar o sistema
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mx-auto flex w-full max-w-sm flex-col items-center space-y-8"
+          >
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Usuário</FormLabel>
+
+                  <FormControl>
+                    <Input placeholder="Informe seu usuário" {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Senha</FormLabel>
+
+                  <FormControl>
+                    <Input type="password" placeholder="Informe sua senha" {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="rememberMe"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <label className="inline-flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => field.onChange(!!checked)}
+                      />
+
+                      <span>Lembrar de mim</span>
+                    </label>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <Button className="w-full bg-teal-500 hover:bg-teal-600" type="submit">
+              entrar
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
