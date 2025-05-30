@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Company } from '../types/companies.type';
+import { fromFirestore } from '../utils';
 
 const COMPANIES_COLLECTION = 'companies';
 export const clientCompanyService = {
@@ -43,5 +44,10 @@ export const clientCompanyService = {
         msgRet: `Error creating company: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
+  },
+  getAll: async (): Promise<Company[]> => {
+    const q = query(collection(db, COMPANIES_COLLECTION));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((docSn) => fromFirestore<Company>(docSn));
   },
 };

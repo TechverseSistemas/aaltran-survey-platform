@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +22,14 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
+import { Building2, Mail, Phone, Plus, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { z } from 'zod';
 import { clientCompanyService } from '@/lib/services/companies.service';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Company } from '@/lib/types/companies.type';
 
 const companyFocalPointSchema = z.object({
   name: z.string().min(1, { message: 'O nome do ponto focal é obrigatório.' }),
@@ -69,7 +72,8 @@ const phoneMaskDefinition = [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-000
 
 export default function CompaniesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+  const [filteredEmpresas, setFilteredEmpresas] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companyFormSchema),
     defaultValues: {
@@ -95,6 +99,15 @@ export default function CompaniesPage() {
     setIsDialogOpen(false);
   }
 
+  async function fetchCompanies() {
+    const companies = await clientCompanyService.getAll();
+    setCompanies(companies);
+  }
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
   const shadcnInputClassName =
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -107,7 +120,6 @@ export default function CompaniesPage() {
             Gerencie as empresas clientes cadastradas no sistema
           </p>
         </div>
-
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => form.reset()}>
@@ -315,6 +327,43 @@ export default function CompaniesPage() {
             </Form>
           </DialogContent>
         </Dialog>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {companies.map((empresa) => (
+          <Card key={empresa.id} className="transition-shadow hover:shadow-md">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg">{empresa.fantasy_name}</CardTitle>
+                </div>
+              </div>
+              <CardDescription>CNPJ: {empresa.cnpj}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Ponto Focal: {empresa.focal_point.name}</p>
+                <div className="text-muted-foreground flex items-center space-x-2 text-sm">
+                  <Mail className="h-3 w-3" />
+                  <span>{empresa.focal_point.email}</span>
+                </div>
+                <div className="text-muted-foreground flex items-center space-x-2 text-sm">
+                  <Phone className="h-3 w-3" />
+                  <span>{empresa.focal_point.phone}</span>
+                </div>
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <Button variant="outline" size="sm" className="flex-1">
+                  Editar
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1">
+                  Ver Funcionários
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
