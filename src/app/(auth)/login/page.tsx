@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -90,21 +91,21 @@ export default function LoginPage() {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <label className="inline-flex items-center space-x-2">
+                    <Label className="inline-flex items-center space-x-1">
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={(checked) => field.onChange(!!checked)}
                       />
 
-                      <span>Lembrar de mim</span>
-                    </label>
+                      <p className="text-sm font-medium">Lembrar de mim</p>
+                    </Label>
                   </FormControl>
                 </FormItem>
               )}
             />
 
             <Button className="w-full bg-teal-500 hover:bg-teal-600" type="submit">
-              entrar
+              ENTRAR
             </Button>
           </form>
         </Form>

@@ -18,10 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${montSerrat.className} antialiased`}>
-        <Providers>{children}</Providers>
-      </body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={`${montSerrat.className} antialiased`}>{children}</body>
     </html>
   );
 }
