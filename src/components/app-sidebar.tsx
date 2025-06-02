@@ -45,12 +45,12 @@ const sidebarGroups = [
     items: [
       {
         title: 'Empresas',
-        url: '/empresas',
+        url: '/companies',
         icon: Building2,
       },
       {
         title: 'Funcionários',
-        url: '/funcionarios',
+        url: '/employees',
         icon: Users,
       },
       {
