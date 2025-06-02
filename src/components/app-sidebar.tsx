@@ -50,7 +50,7 @@ const sidebarGroups = [
       },
       {
         title: 'Funcionários',
-        url: '/funcionarios',
+        url: '/employees',
         icon: Users,
       },
       {

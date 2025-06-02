@@ -1,7 +1,17 @@
 'use client';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -13,23 +23,21 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { clientCompanyService } from '@/lib/services/companies.service';
+import { Company } from '@/lib/types/companies.type';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Building2, Mail, Phone, Plus, Users } from 'lucide-react';
+import { Building2, Mail, Phone, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { z } from 'zod';
-import { clientCompanyService } from '@/lib/services/companies.service';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Company } from '@/lib/types/companies.type';
 
 const companyFocalPointSchema = z.object({
   name: z.string().min(1, { message: 'O nome do ponto focal é obrigatório.' }),
@@ -73,7 +81,9 @@ const phoneMaskDefinition = [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-000
 export default function CompaniesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filteredEmpresas, setFilteredEmpresas] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [formType, setFormType] = useState<'create' | 'edit'>('create');
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companyFormSchema),
     defaultValues: {
@@ -90,6 +100,16 @@ export default function CompaniesPage() {
   });
 
   async function onSubmit(values: CompanyFormData) {
+    if (formType === 'edit') {
+      const req = await clientCompanyService.update(selectedCompany!.id, values);
+      if (req.codRet !== 0) {
+        alert(`Erro ao editar empresa: ${req.msgRet}`);
+
+        return;
+      }
+
+      return;
+    }
     const req = await clientCompanyService.create(values);
     if (req.codRet !== 0) {
       alert(`Erro ao cadastrar empresa: ${req.msgRet}`);
@@ -122,7 +142,19 @@ export default function CompaniesPage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => form.reset()}>
+            <Button
+              onClick={() => {
+                setFormType('create');
+                setSelectedCompany(null);
+                form.reset({
+                  cnpj: '',
+                  fantasy_name: '',
+                  full_address: '',
+                  focal_point: { name: '', email: '', phone: '' },
+                  owner: '',
+                });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Nova Empresa
             </Button>
@@ -320,7 +352,11 @@ export default function CompaniesPage() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? 'Salvando...' : 'Cadastrar Empresa'}
+                    {form.formState.isSubmitting
+                      ? 'Salvando...'
+                      : formType == 'create'
+                        ? 'Cadastrar Empresa'
+                        : 'Salvar Alterações'}
                   </Button>
                 </div>
               </form>
@@ -354,12 +390,64 @@ export default function CompaniesPage() {
               </div>
 
               <div className="flex space-x-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  onClick={async () => {
+                    setFormType('edit');
+                    setSelectedCompany(empresa);
+                    if (empresa) {
+                      form.reset({
+                        cnpj: empresa.cnpj,
+                        fantasy_name: empresa.fantasy_name,
+                        full_address: empresa.full_address,
+                        focal_point: {
+                          name: empresa.focal_point.name,
+                          email: empresa.focal_point.email,
+                          phone: empresa.focal_point.phone,
+                        },
+                        owner: empresa.owner,
+                      });
+                      setIsDialogOpen(true);
+                    } else {
+                      alert('Empresa não encontrada');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  Ver Funcionários
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger>
+                    <Button variant="destructive" size="sm" className="flex-1">
+                      Deletar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Deseja realmente Deletar essa empresa ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your account and
+                        remove your data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          const req = await clientCompanyService.delete(empresa.id);
+                          if (req.codRet !== 0) {
+                            alert(`Erro ao deletar empresa: ${req.msgRet}`);
+                            return;
+                          }
+                          setCompanies((prev) => prev.filter((c) => c.id !== empresa.id));
+                        }}
+                      >
+                        Confirmar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </CardContent>
           </Card>
