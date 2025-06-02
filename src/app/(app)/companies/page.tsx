@@ -101,18 +101,33 @@ export default function CompaniesPage() {
 
   async function onSubmit(values: CompanyFormData) {
     if (formType === 'edit') {
-      const req = await clientCompanyService.update(selectedCompany!.id, values);
-      if (req.codRet !== 0) {
-        alert(`Erro ao editar empresa: ${req.msgRet}`);
-
+      const editValues: Partial<Company> = {
+        ...selectedCompany,
+        ...values,
+      };
+      const response = await fetch(`/api/companies/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editValues),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Erro ao editar empresa: ${errorData.msgRet}`);
         return;
       }
-
+      form.reset();
+      setIsDialogOpen(false);
       return;
     }
-    const req = await clientCompanyService.create(values);
-    if (req.codRet !== 0) {
-      alert(`Erro ao cadastrar empresa: ${req.msgRet}`);
+    const response = await fetch('/api/companies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    console.log('Response:', response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Erro ao cadastrar empresa: ${errorData.msgRet}`);
       return;
     }
     form.reset();
@@ -120,7 +135,11 @@ export default function CompaniesPage() {
   }
 
   async function fetchCompanies() {
-    const companies = await clientCompanyService.getAll();
+    const req = await fetch('/api/companies', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const companies = await req.json();
     setCompanies(companies);
   }
 
@@ -435,9 +454,15 @@ export default function CompaniesPage() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={async () => {
-                          const req = await clientCompanyService.delete(empresa.id);
-                          if (req.codRet !== 0) {
-                            alert(`Erro ao deletar empresa: ${req.msgRet}`);
+                          
+                          const response = await fetch('/api/companies', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: empresa.id }),
+                          });
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            alert(`Erro ao deletar empresa: ${errorData.msgRet}`);
                             return;
                           }
                           setCompanies((prev) => prev.filter((c) => c.id !== empresa.id));
