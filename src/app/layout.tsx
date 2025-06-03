@@ -19,7 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${montSerrat.className} antialiased`}>{children}</body>
+      <body className={`${montSerrat.className} antialiased`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

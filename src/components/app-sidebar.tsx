@@ -1,33 +1,33 @@
 'use client';
 
 import {
-  Building2,
-  Users,
-  BarChart3,
-  Target,
-  FileText,
-  Settings,
-  Home,
-  TrendingUp,
   Award,
+  BarChart3,
+  Building2,
+  FileText,
+  Home,
+  Settings,
+  Target,
+  TrendingUp,
   Upload,
+  Users,
 } from 'lucide-react';
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 
 const sidebarGroups = [
   {
