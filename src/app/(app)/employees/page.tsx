@@ -126,6 +126,7 @@ export default function EmployeesPage() {
 
     return matchesSearch && matchesCompany && matchesDepartment;
   });
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

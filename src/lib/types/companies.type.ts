@@ -11,5 +11,6 @@ export interface Company {
   full_address: string;
   focal_point: CompanyFocaLPoint;
   owner: string;
-  created_at: Timestamp;
+  created_at?: Timestamp;
+  updated_at?: Timestamp;
 }

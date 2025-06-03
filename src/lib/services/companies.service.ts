@@ -93,14 +93,18 @@ export const clientCompanyService = {
   },
   update: async (
     id: string | undefined,
-    companyData: Partial<Omit<Company, 'id' | 'created_at'>>
+    companyData: Omit<Company, 'id' | 'created_at'>
   ): Promise<{
     codRet: number;
     msgRet: string;
   }> => {
     const docRef = doc(db, COMPANIES_COLLECTION, id ? id : '');
     try {
-      await updateDoc(docRef, companyData as SetOptions);
+      const updateCompanyData: Omit<Company, 'id' | 'created_at'> = {
+        ...companyData,
+        updated_at: Timestamp.now(), // Adiciona o campo de atualização
+      };
+      await updateDoc(docRef, updateCompanyData as SetOptions);
       return {
         codRet: 0,
         msgRet: `Company with ID ${id} updated successfully`,
