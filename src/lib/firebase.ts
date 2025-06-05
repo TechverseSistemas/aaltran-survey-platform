@@ -1,24 +1,24 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import admin from 'firebase-admin';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyAPCofInSqniROZFJan3DY8t0TkC10Mf9A',
-  authDomain: 'projeto-aaltran.firebaseapp.com',
-  projectId: 'projeto-aaltran',
-  storageBucket: 'projeto-aaltran.firebasestorage.app',
-  messagingSenderId: '195398717411',
-  appId: '1:195398717411:web:5128c900d4b7c281735ad6',
-};
-
-let app: FirebaseApp;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  } catch (error) {
+    console.error('Firebase admin initialization error:');
+    if (error instanceof Error) {
+      console.error('Message:', error.message);
+      console.error('Stack:', error.stack);
+    } else {
+      console.error('Caught an unknown error:', error);
+    }
+  }
 }
 
-const db: Firestore = getFirestore(app);
-const auth: Auth = getAuth(app);
-
-export { db, auth, app };
+export const db = admin.firestore();
+export const auth = admin.auth();

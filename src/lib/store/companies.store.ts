@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Company } from '../types/companies.type';
+import { Company } from '../../types/companies';
 
 interface CompaniesStore {
   companies: Company[] | null;

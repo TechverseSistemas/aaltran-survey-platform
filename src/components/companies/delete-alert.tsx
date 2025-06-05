@@ -11,7 +11,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Company } from '@/lib/types/companies.type';
+import { Company } from '@/types/companies';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function DeleteAlert({ company }: { company: Company }) {

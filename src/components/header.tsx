@@ -1,5 +1,5 @@
 'use client';
-import { Company } from '@/lib/types/companies.type';
+import { Company } from '@/types/companies';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LogOut, Settings, User } from 'lucide-react';
 import { useState } from 'react';

@@ -1,5 +1,4 @@
-import { create } from 'zustand';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp as AdminTimestamp, FieldValue } from 'firebase-admin/firestore';
 
 export interface Employee {
   id?: string;
@@ -17,6 +16,7 @@ export interface Employee {
   scholarity: string;
   admission_date: string;
   login: string;
-  password: string;
-  created_at: Timestamp;
+  password?: string;
+  created_at?: AdminTimestamp | FieldValue;
+  updated_at?: AdminTimestamp | FieldValue;
 }

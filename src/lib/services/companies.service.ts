@@ -13,7 +13,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Company } from '../types/companies.type';
+import { Company } from '../../types/companies';
 import { fromFirestore } from '../utils';
 
 const COMPANIES_COLLECTION = 'companies';
