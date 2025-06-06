@@ -1,8 +1,9 @@
-import { Timestamp as AdminTimestamp, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
-type Gender = 'Masculino' | 'Feminino';
-type Timestamp = AdminTimestamp | FieldValue;
-type Scholarity =
+type FirestoreTimestamp = Date | FieldValue;
+
+export type Gender = 'Masculino' | 'Feminino';
+export type Scholarity =
   | 'ensino_fundamental'
   | 'ensino_medio'
   | 'ensino_superior'
@@ -12,18 +13,22 @@ type Scholarity =
 
 export interface Employee {
   id: string;
-  id_company: string;
-  id_section: string;
-  id_departament: string;
+  auth_uid: string;
+  departmentId: string;
+  jobTitleId: string;
   name: string;
   cpf: string;
-  birth_date: Date;
+  birth_date: FirestoreTimestamp;
+  admission_date: FirestoreTimestamp;
   gender: Gender;
   scholarity: Scholarity;
-  admission_date: Date;
-  leader: boolean;
-  login: string;
-  password: string;
-  created_at?: Timestamp;
-  updated_at?: Timestamp;
+  isLeader: boolean;
+  reportsTo?: string; // ID do líder direto (outro employeeId)
+  createdAt?: FirestoreTimestamp;
+  updatedAt?: FirestoreTimestamp;
+}
+
+export interface FullEmployee extends Employee {
+  departmentName: string;
+  jobTitleName: string;
 }

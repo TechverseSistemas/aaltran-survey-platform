@@ -1,61 +1,86 @@
 import { db } from '@/lib/firebase';
-import { Company } from '@/types/companies';
-import {
-  DocumentReference,
-  FieldValue,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
-} from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
+const focalPointSchema = z.object({
+  name: z.string().min(1, 'O nome do ponto focal é obrigatório.'),
+  email: z.string().email('O e-mail do ponto focal é inválido.'),
+  phone: z.string().min(1, 'O telefone do ponto focal é obrigatório.'),
+});
+
+const companyCreateSchema = z.object({
+  cnpj: z
+    .string()
+    .min(14, 'O CNPJ deve ter no mínimo 14 caracteres.')
+    .max(18, 'O CNPJ deve ter no máximo 18 caracteres.'),
+  fantasy_name: z.string().min(1, 'O nome fantasia é obrigatório.'),
+  full_address: z.string().min(1, 'O endereço é obrigatório.'),
+  owner: z.string().min(1, 'O nome do proprietário é obrigatório.'),
+  focal_point: focalPointSchema,
+});
+
+/**
+ * @method POST
+ * @description Cria uma nova empresa no banco de dados.
+ */
 export async function POST(request: Request) {
   try {
-    const companyData: Omit<Company, 'id' | 'created_at' | 'updated_at'> = await request.json();
+    const rawData = await request.json();
 
-    const companyToSave: Company = {
-      ...companyData,
-      created_at: FieldValue.serverTimestamp(),
-      updated_at: FieldValue.serverTimestamp(),
+    const validatedData = companyCreateSchema.parse(rawData);
+
+    const companyToSave = {
+      ...validatedData,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
-    const docRef: DocumentReference = await db.collection('companies').add(companyToSave);
+    const docRef = await db.collection('companies').add(companyToSave);
 
-    const responsePayload: Company = {
-      ...companyData,
-      id: docRef.id,
-    };
-
-    return NextResponse.json(responsePayload, { status: 201 });
+    return NextResponse.json(
+      {
+        id: docRef.id,
+        ...companyToSave,
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('Error creating company:', error);
-    return NextResponse.json({ error: 'Failed to create company' } as { error: string }, {
-      status: 500,
-    });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos.',
+          details: error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    console.error('Erro ao criar empresa:', error);
+    return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
+/**
+ * @method GET
+ * @description Retorna uma lista de todas as empresas cadastradas.
+ */
 export async function GET() {
   try {
-    const snapshot: QuerySnapshot = await db.collection('companies').orderBy('fantasy_name').get();
+    const snapshot = await db.collection('companies').orderBy('fantasy_name').get();
 
     if (snapshot.empty) {
-      return NextResponse.json([] as Company[], { status: 200 });
+      return NextResponse.json([], { status: 200 });
     }
 
-    const companies = snapshot.docs.map((doc: QueryDocumentSnapshot) => {
-      const data = doc.data();
-      return {
-        ...data,
-        id: doc.id,
-      };
-    }) as Company[];
+    const companies = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     return NextResponse.json(companies, { status: 200 });
   } catch (error) {
-    console.error('Error fetching company:', error);
-
-    return NextResponse.json({ error: 'Failed to fetch company' } as { error: string }, {
-      status: 500,
-    });
+    console.error('Erro ao buscar empresas:', error);
+    return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

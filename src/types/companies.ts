@@ -1,4 +1,8 @@
-import { Timestamp as AdminTimestamp, FieldValue } from 'firebase-admin/firestore';
+// src/types/companies.ts
+
+import { FieldValue } from 'firebase-admin/firestore';
+
+type FirestoreTimestamp = Date | FieldValue;
 
 export interface CompanyFocalPoint {
   name: string;
@@ -11,8 +15,8 @@ export interface Company {
   cnpj: string;
   fantasy_name: string;
   full_address: string;
-  focal_point: CompanyFocalPoint;
   owner: string;
-  created_at?: AdminTimestamp | FieldValue;
-  updated_at?: AdminTimestamp | FieldValue;
+  focal_point: CompanyFocalPoint;
+  createdAt?: FirestoreTimestamp;
+  updatedAt?: FirestoreTimestamp;
 }
