@@ -7,7 +7,7 @@ export interface CompanyFocalPoint {
 }
 
 export interface Company {
-  id?: string;
+  id: string;
   cnpj: string;
   fantasy_name: string;
   full_address: string;
