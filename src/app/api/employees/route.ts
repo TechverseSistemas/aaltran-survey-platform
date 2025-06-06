@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase';
+import { employeeCreateSchema } from '@/schemas/employee';
 import { Employee } from '@/types/employees';
 import {
   DocumentReference,
@@ -7,13 +8,15 @@ import {
   QuerySnapshot,
 } from 'firebase-admin/firestore';
 import { NextResponse } from 'next/server';
+import z from 'zod';
 
 export async function POST(request: Request) {
   try {
-    const employeeData: Omit<Employee, 'id' | 'created_at' | 'updated_at'> = await request.json();
+    const rawData = await request.json();
+    const validatedData = employeeCreateSchema.parse(rawData);
 
-    const employeeToSave: Employee = {
-      ...employeeData,
+    const employeeToSave = {
+      ...validatedData,
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     };
@@ -21,16 +24,20 @@ export async function POST(request: Request) {
     const docRef: DocumentReference = await db.collection('employees').add(employeeToSave);
 
     const responsePayload: Employee = {
-      ...employeeData,
+      ...validatedData,
       id: docRef.id,
     };
 
     return NextResponse.json(responsePayload, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
     console.error('Error creating employee:', error);
-    return NextResponse.json({ error: 'Failed to create employee' } as { error: string }, {
-      status: 500,
-    });
+    return NextResponse.json({ error: 'Failed to create employee' }, { status: 500 });
   }
 }
 

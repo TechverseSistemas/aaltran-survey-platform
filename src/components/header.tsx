@@ -1,6 +1,5 @@
 'use client';
-import { Company } from '@/types/companies';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useGetCompanies } from '@/hooks/use-companies';
 import { LogOut, Settings, User } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -16,19 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { SidebarTrigger } from './ui/sidebar';
 export default function Header() {
   const [selectedCompany, setSelectedCompany] = useState('all');
-  const { data } = useQuery({
-    queryKey: ['companies'],
-    queryFn: fetchCompanies,
-    staleTime: 1000 * 60 * 5, // 5 minutes // 1 hour
-  });
-  async function fetchCompanies() {
-    const req = await fetch('/api/companies', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const companies: Company[] = await req.json();
-    return companies;
-  }
+
+  const { data } = useGetCompanies();
+
   return (
     <header className="flex h-16 items-center justify-between gap-2 border-b p-4">
       <SidebarTrigger variant={'ghost'} size={'icon'} />
