@@ -88,7 +88,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @method GET
  * @description Retorna a lista de respostas de uma campanha para análise e dashboards.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { companyId, campaignId } = params;
 

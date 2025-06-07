@@ -60,7 +60,7 @@ export async function POST(request: Request, { params }: RouteContext) {
  * @method GET
  * @description Retorna uma lista de todos os cargos de uma empresa específica.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { companyId } = params;
     const jobTitlesRef = db.collection('companies').doc(companyId).collection('jobTitles');

@@ -18,7 +18,7 @@ interface RouteContext {
  * @method GET
  * @description Busca os dados de um funcionário específico, com os nomes de cargo e departamento.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { companyId, employeeId } = params;
 

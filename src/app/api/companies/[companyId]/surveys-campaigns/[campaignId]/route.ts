@@ -21,7 +21,7 @@ interface RouteContext {
  * @method GET
  * @description Busca os dados de uma campanha de pesquisa específica.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { companyId, campaignId } = params;
     const docRef = db

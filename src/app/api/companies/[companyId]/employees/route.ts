@@ -1,4 +1,4 @@
-import { auth, db } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { employeeCreateSchema } from '@/schemas/employee'; // Usando seu schema existente
 import { Employee } from '@/types/employees';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -24,14 +24,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const { id_departament: departmentId, id_section: jobTitleId, ...restOfData } = validatedData;
 
-    const userRecord = await auth.createUser({
-      email: restOfData.login,
-      password: restOfData.password,
-      displayName: restOfData.name,
-      disabled: false,
-    });
+    // const userRecord = await auth.createUser({
+    //   email: restOfData.login,
+    //   password: restOfData.password,
+    //   displayName: restOfData.name,
+    //   disabled: false,
+    // });
 
-    const { uid } = userRecord;
+    // const { uid } = userRecord;
     const batch = db.batch();
 
     const employeeRef = db.collection('companies').doc(companyId).collection('employees').doc();
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       ...restOfData,
       departmentId,
       jobTitleId,
-      auth_uid: uid,
+      // auth_uid: uid,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };
@@ -51,7 +51,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     batch.set(employeeRef, employeeToSave);
 
-    const userProfileRef = db.collection('users').doc(uid);
+    const userProfileRef = db.collection('users').doc();
+    // const userProfileRef = db.collection('users').doc(uid);
     batch.set(userProfileRef, {
       email: restOfData.login,
       role: 'employee',
@@ -97,9 +98,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @method GET
  * @description Retorna a lista de funcionários de uma empresa, com os nomes dos cargos e departamentos.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
+  const { companyId } = params;
+
   try {
-    const { companyId } = params;
     const employeesRef = db.collection('companies').doc(companyId).collection('employees');
     const employeesSnapshot = await employeesRef.orderBy('name').get();
 
@@ -141,7 +143,7 @@ export async function GET({ params }: RouteContext) {
 
     return NextResponse.json(fullEmployees);
   } catch (error) {
-    console.error(`Erro ao buscar funcionários da empresa ${params.companyId}:`, error);
+    console.error(`Erro ao buscar funcionários da empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

@@ -6,7 +6,6 @@ import {
   Building2,
   FileText,
   Home,
-  Settings,
   Target,
   TrendingUp,
   Upload,
@@ -16,7 +15,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -24,6 +22,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -109,6 +108,13 @@ const sidebarGroups = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar>
@@ -121,6 +127,7 @@ export function AppSidebar() {
         {sidebarGroups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
@@ -132,10 +139,10 @@ export function AppSidebar() {
                         asChild
                         className={cn({
                           'transition hover:translate-x-2': !isActive,
-                          'bg-primary/10 hover:bg-primary/20 rounded-md': isActive,
+                          'bg-primary/10 hover:bg-primary/20 translate-x-2 rounded-md': isActive,
                         })}
                       >
-                        <Link href={item.url}>
+                        <Link onClick={handleClick} href={item.url}>
                           <item.icon />
                           <span>{item.title}</span>
                         </Link>
@@ -148,19 +155,6 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
-      <SidebarFooter className="border-t p-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/configuracoes">
-                <Settings />
-                <span>Configurações</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
