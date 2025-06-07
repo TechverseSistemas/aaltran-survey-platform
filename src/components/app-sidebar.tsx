@@ -54,7 +54,7 @@ const sidebarGroups = [
         icon: Users,
       },
       {
-        title: 'Importar Excel',
+        title: 'Importar Funcionários',
         url: '/import',
         icon: Upload,
       },
