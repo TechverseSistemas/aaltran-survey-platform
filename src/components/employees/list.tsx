@@ -1,9 +1,12 @@
 'use client';
 
 import { useGetEmployees } from '@/hooks/use-employees';
+import { useSelectedCompanyStore } from '@/store/selected-company';
 
 export default function EmployeesList() {
-  const { data: employees, isLoading } = useGetEmployees();
+  const { selectedCompany } = useSelectedCompanyStore();
+
+  const { data: employees, isLoading } = useGetEmployees(selectedCompany?.id);
 
   if (isLoading) {
     return <div>Carregando...</div>;

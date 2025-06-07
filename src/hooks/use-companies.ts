@@ -1,7 +1,7 @@
 import { Company } from '@/types/companies';
 import { useQuery } from '@tanstack/react-query';
 
-export function useGetCompanies() {
+export function useGetCompaniesQuery() {
   return useQuery<Company[]>({
     queryKey: ['companies'],
     queryFn: async () => {

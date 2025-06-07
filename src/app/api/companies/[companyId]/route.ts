@@ -30,7 +30,7 @@ interface RouteContext {
  * @method GET
  * @description Busca os dados de uma empresa específica.
  */
-export async function GET({ params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { companyId } = params;
     const docRef = db.collection('companies').doc(companyId);
