@@ -1,8 +1,5 @@
 'use client';
-import { Company } from '@/lib/types/companies.type';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LogOut, Settings, User } from 'lucide-react';
-import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -12,39 +9,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { SidebarTrigger } from './ui/sidebar';
+import SelectCompany from './select-company';
+
 export default function Header() {
-  const [selectedCompany, setSelectedCompany] = useState('all');
-  const { data } = useQuery({
-    queryKey: ['companies'],
-    queryFn: fetchCompanies,
-    staleTime: 1000 * 60 * 5, // 5 minutes // 1 hour
-  });
-  async function fetchCompanies() {
-    const req = await fetch('/api/companies', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const companies: Company[] = await req.json();
-    return companies;
-  }
   return (
     <header className="flex h-16 items-center justify-between gap-2 border-b p-4">
       <SidebarTrigger variant={'ghost'} size={'icon'} />
+
       <div className="flex items-center gap-2">
-        <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Empresa" />
-          </SelectTrigger>
-          <SelectContent>
-            {data?.map((empresa) => (
-              <SelectItem key={empresa.id} value={empresa.fantasy_name}>
-                {empresa.fantasy_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SelectCompany />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar>

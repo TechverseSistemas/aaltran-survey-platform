@@ -1,77 +1,86 @@
-import { clientCompanyService } from '@/lib/services/companies.service';
-import { Company } from '@/lib/types/companies.type';
+import { db } from '@/lib/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
+const focalPointSchema = z.object({
+  name: z.string().min(1, 'O nome do ponto focal é obrigatório.'),
+  email: z.string().email('O e-mail do ponto focal é inválido.'),
+  phone: z.string().min(1, 'O telefone do ponto focal é obrigatório.'),
+});
+
+const companyCreateSchema = z.object({
+  cnpj: z
+    .string()
+    .min(14, 'O CNPJ deve ter no mínimo 14 caracteres.')
+    .max(18, 'O CNPJ deve ter no máximo 18 caracteres.'),
+  fantasy_name: z.string().min(1, 'O nome fantasia é obrigatório.'),
+  full_address: z.string().min(1, 'O endereço é obrigatório.'),
+  owner: z.string().min(1, 'O nome do proprietário é obrigatório.'),
+  focal_point: focalPointSchema,
+});
+
+/**
+ * @method POST
+ * @description Cria uma nova empresa no banco de dados.
+ */
 export async function POST(request: Request) {
   try {
-    const companyData = (await request.json()) as Omit<Company, 'id' | 'created_at'>;
-    // Adicionar validação para companyData aqui
-    if (!companyData.cnpj || !companyData.fantasy_name) {
-      return NextResponse.json({ error: 'CNPJ e Nome Fantasia são obrigatórios' }, { status: 400 });
-    }
-    const companyId = await clientCompanyService.create(companyData);
+    const rawData = await request.json();
+
+    const validatedData = companyCreateSchema.parse(rawData);
+
+    const companyToSave = {
+      ...validatedData,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    const docRef = await db.collection('companies').add(companyToSave);
+
     return NextResponse.json(
-      { id: companyId, message: 'Empresa cliente criada com sucesso' },
+      {
+        id: docRef.id,
+        ...companyToSave,
+      },
       { status: 201 }
     );
-  } catch (error: any) {
-    console.error('Erro ao criar empresa cliente:', error);
-    return NextResponse.json(
-      { error: error.message || 'Falha ao criar empresa cliente' },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Dados inválidos.',
+          details: error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    console.error('Erro ao criar empresa:', error);
+    return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
+/**
+ * @method GET
+ * @description Retorna uma lista de todas as empresas cadastradas.
+ */
 export async function GET() {
   try {
-    const companies = await clientCompanyService.getAll();
-    return new Response(JSON.stringify(companies), {
-      headers: { 'content-type': 'application/json' },
-      status: 201,
-    });
-  } catch (error: any) {
-    console.error('Erro ao buscar empresas clientes:', error);
-    return NextResponse.json(
-      { error: error.message || 'Falha ao buscar empresas clientes' },
-      { status: 500 }
-    );
-  }
-}
+    const snapshot = await db.collection('companies').orderBy('fantasy_name').get();
 
-export async function PATCH(request: Request) {
-  try {
-    const companyData = (await request.json()) as Company;
-    if (!companyData.id) {
-      return NextResponse.json({ error: 'ID da empresa é obrigatório' }, { status: 400 });
+    if (snapshot.empty) {
+      return NextResponse.json([], { status: 200 });
     }
-    const updatedCompany = await clientCompanyService.update(companyData.id, companyData);
-    return NextResponse.json(
-      { message: 'Empresa cliente atualizada com sucesso', company: updatedCompany },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error('Erro ao atualizar empresa cliente:', error);
-    return NextResponse.json(
-      { error: error.message || 'Falha ao atualizar empresa cliente' },
-      { status: 500 }
-    );
-  }
-}
 
-export async function DELETE(request: Request) {
-  try {
-    const { id } = await request.json();
-    if (!id) {
-      return NextResponse.json({ error: 'ID da empresa é obrigatório' }, { status: 400 });
-    }
-    await clientCompanyService.delete(id);
-    return NextResponse.json({ message: 'Empresa cliente excluída com sucesso' }, { status: 200 });
-  } catch (error: any) {
-    console.error('Erro ao excluir empresa cliente:', error);
-    return NextResponse.json(
-      { error: error.message || 'Falha ao excluir empresa cliente' },
-      { status: 500 }
-    );
+    const companies = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return NextResponse.json(companies, { status: 200 });
+  } catch (error) {
+    console.error('Erro ao buscar empresas:', error);
+    return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

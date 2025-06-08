@@ -1,7 +1,7 @@
 'use client';
 import EditCompanyDialog from '@/components/companies/edit-company-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Company } from '@/lib/types/companies.type';
+import { Company } from '@/types/companies';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, Mail, Phone } from 'lucide-react';
 import DeleteAlert from './delete-alert';
