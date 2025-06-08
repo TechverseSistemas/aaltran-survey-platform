@@ -8,7 +8,7 @@ export interface Department {
   createdAt?: FirestoreTimestamp;
 }
 
-export interface JobTitle {
+export interface Position {
   id: string;
   name: string;
   createdAt?: FirestoreTimestamp;

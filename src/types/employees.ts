@@ -13,9 +13,8 @@ export type Scholarity =
 
 export interface Employee {
   id: string;
-  auth_uid: string;
   departmentId: string;
-  jobTitleId: string;
+  positionId: string;
   name: string;
   cpf: string;
   birth_date: FirestoreTimestamp;
@@ -23,12 +22,12 @@ export interface Employee {
   gender: Gender;
   scholarity: Scholarity;
   isLeader: boolean;
-  reportsTo?: string; // ID do líder direto (outro employeeId)
+  role: 'employee' | 'company_admin' | 'super_admin';
   createdAt?: FirestoreTimestamp;
   updatedAt?: FirestoreTimestamp;
 }
 
 export interface FullEmployee extends Employee {
   departmentName: string;
-  jobTitleName: string;
+  positionName: string;
 }
