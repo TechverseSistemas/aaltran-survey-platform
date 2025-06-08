@@ -20,10 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useGetCompaniesQuery } from '@/hooks/use-companies';
 import { useCreateEmployee } from '@/hooks/use-employees';
 import { cn } from '@/lib/utils';
 import { employeeCreateSchema } from '@/schemas/employee';
+import { useSelectedCompanyStore } from '@/store/selected-company';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus } from 'lucide-react';
@@ -34,21 +34,17 @@ import { z } from 'zod';
 import { Calendar } from '../ui/calendar';
 import { Checkbox } from '../ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { PasswordInput } from '../input-password';
-import { useSelectedCompanyStore } from '@/store/selected-company';
 
 export default function CreateEmployeeDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { selectedCompany } = useSelectedCompanyStore();
-
-  const { data } = useGetCompaniesQuery();
 
   const { mutate: createEmployee } = useCreateEmployee(selectedCompany?.id);
 
   const form = useForm<z.infer<typeof employeeCreateSchema>>({
     resolver: zodResolver(employeeCreateSchema),
     defaultValues: {
-      id_section: '',
+      id_position: '',
       id_departament: '',
       name: '',
       cpf: '',
@@ -190,7 +186,7 @@ export default function CreateEmployeeDialog() {
 
             <FormField
               control={form.control}
-              name="id_section"
+              name="id_position"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cargo</FormLabel>

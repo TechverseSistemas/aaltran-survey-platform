@@ -1,8 +1,8 @@
 import { db } from '@/lib/firebase';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const jobTitleUpdateSchema = z
+const positionUpdateSchema = z
   .object({
     name: z.string().min(1, 'O nome do cargo é obrigatório.').optional(),
   })
@@ -11,7 +11,8 @@ const jobTitleUpdateSchema = z
 interface RouteContext {
   params: {
     companyId: string;
-    jobTitleId: string;
+    departmentId: string;
+    positionId: string;
   };
 }
 
@@ -19,12 +20,12 @@ interface RouteContext {
  * @method PUT
  * @description Atualiza os dados de um cargo específico.
  */
-export async function PUT(request: Request, { params }: RouteContext) {
+export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
-    const { companyId, jobTitleId } = params;
+    const { companyId, departmentId, positionId } = params;
     const rawData = await request.json();
 
-    const validatedData = jobTitleUpdateSchema.parse(rawData);
+    const validatedData = positionUpdateSchema.parse(rawData);
 
     if (Object.keys(validatedData).length === 0) {
       return NextResponse.json(
@@ -36,8 +37,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const docRef = db
       .collection('companies')
       .doc(companyId)
-      .collection('jobTitles')
-      .doc(jobTitleId);
+      .collection('departments')
+      .doc(departmentId)
+      .collection('positions')
+      .doc(positionId);
 
     const docSnap = await docRef.get();
     if (!docSnap.exists) {
@@ -46,7 +49,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     await docRef.update(validatedData);
 
-    return NextResponse.json({ message: `Cargo ${jobTitleId} atualizado com sucesso.` });
+    return NextResponse.json({ message: `Cargo ${positionId} atualizado com sucesso.` });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -54,8 +57,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
         { status: 400 }
       );
     }
-
-    console.error(`Erro ao atualizar cargo ${params.jobTitleId}:`, error);
+    console.error(`Erro ao atualizar cargo ${params.positionId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -64,38 +66,42 @@ export async function PUT(request: Request, { params }: RouteContext) {
  * @method DELETE
  * @description Deleta um cargo específico.
  */
-export async function DELETE({ params }: RouteContext) {
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
   try {
-    const { companyId, jobTitleId } = params;
+    const { companyId, departmentId, positionId } = params;
 
-    const jobTitleRef = db
+    const positionRef = db
       .collection('companies')
       .doc(companyId)
-      .collection('jobTitles')
-      .doc(jobTitleId);
-    const jobTitleSnap = await jobTitleRef.get();
+      .collection('departments')
+      .doc(departmentId)
+      .collection('positions')
+      .doc(positionId);
 
-    if (!jobTitleSnap.exists) {
+    const positionSnap = await positionRef.get();
+    if (!positionSnap.exists) {
       return NextResponse.json({ error: 'Cargo não encontrado.' }, { status: 404 });
     }
 
-    // --- Boa Prática: Verificação de Dependências ---
-    // Antes de excluir um cargo, verifica se algum funcionário está vinculado a ele.
     const employeesRef = db.collection('companies').doc(companyId).collection('employees');
-    const querySnapshot = await employeesRef.where('jobTitleId', '==', jobTitleId).limit(1).get();
+    const q = employeesRef
+      .where('departmentId', '==', departmentId)
+      .where('positionId', '==', positionId)
+      .limit(1);
 
+    const querySnapshot = await q.get();
     if (!querySnapshot.empty) {
       return NextResponse.json(
         { error: 'Não é possível excluir o cargo, pois existem funcionários vinculados a ele.' },
-        { status: 409 } // 409 Conflict
+        { status: 409 }
       );
     }
 
-    await jobTitleRef.delete();
+    await positionRef.delete();
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar cargo ${params.jobTitleId}:`, error);
+    console.error(`Erro ao deletar cargo ${params.positionId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

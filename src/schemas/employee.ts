@@ -2,7 +2,7 @@ import { isValidCPF } from '@/utils/is-valid-cpf';
 import z from 'zod';
 
 const employeeBaseSchema = z.object({
-  id_section: z.string().min(1, 'ID do setor é obrigatório'),
+  id_position: z.string().min(1, 'ID do cargo é obrigatório'),
   id_departament: z.string().min(1, 'ID do departamento é obrigatório'),
   name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome não pode exceder 100 caracteres'),
   cpf: z.string().min(1, 'O CPF é obrigatório').refine(isValidCPF, 'CPF inválido'),
