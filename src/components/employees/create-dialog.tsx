@@ -35,18 +35,19 @@ import { Calendar } from '../ui/calendar';
 import { Checkbox } from '../ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { PasswordInput } from '../input-password';
+import { useSelectedCompanyStore } from '@/store/selected-company';
 
 export default function CreateEmployeeDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { selectedCompany } = useSelectedCompanyStore();
 
   const { data } = useGetCompaniesQuery();
 
-  const { mutate: createEmployee } = useCreateEmployee();
+  const { mutate: createEmployee } = useCreateEmployee(selectedCompany?.id);
 
   const form = useForm<z.infer<typeof employeeCreateSchema>>({
     resolver: zodResolver(employeeCreateSchema),
     defaultValues: {
-      id_company: '',
       id_section: '',
       id_departament: '',
       name: '',
@@ -56,8 +57,6 @@ export default function CreateEmployeeDialog() {
       scholarity: undefined,
       admission_date: new Date(),
       leader: false,
-      login: '',
-      password: '',
     },
   });
 
@@ -153,34 +152,6 @@ export default function CreateEmployeeDialog() {
                       <SelectContent>
                         <SelectItem value="Masculino">Masculino</SelectItem>
                         <SelectItem value="Feminino">Feminino</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="id_company"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Empresa</FormLabel>
-
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecionar empresa" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {data?.map((company) => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.fantasy_name}
-                          </SelectItem>
-                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -364,38 +335,6 @@ export default function CreateEmployeeDialog() {
                         <SelectItem value="doutorado">Doutorado</SelectItem>
                       </SelectContent>
                     </Select>
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="login"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Login</FormLabel>
-
-                  <FormControl>
-                    <Input placeholder="Login do funcionário" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha</FormLabel>
-
-                  <FormControl>
-                    <PasswordInput placeholder="Senha do funcionário" {...field} />
                   </FormControl>
 
                   <FormMessage />
