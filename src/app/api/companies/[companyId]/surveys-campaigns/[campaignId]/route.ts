@@ -11,10 +11,10 @@ const campaignUpdateSchema = z
   .partial();
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     campaignId: string;
-  };
+  }>;
 }
 
 /**
@@ -22,8 +22,9 @@ interface RouteContext {
  * @description Busca os dados de uma campanha de pesquisa específica.
  */
 export async function GET(request: Request, { params }: RouteContext) {
+  const { companyId, campaignId } = await params;
+
   try {
-    const { companyId, campaignId } = params;
     const docRef = db
       .collection('companies')
       .doc(companyId)
@@ -37,7 +38,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() }, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar campanha ${params.campaignId}:`, error);
+    console.error(`Erro ao buscar campanha ${campaignId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -47,8 +48,9 @@ export async function GET(request: Request, { params }: RouteContext) {
  * @description Atualiza os dados de uma campanha específica.
  */
 export async function PUT(request: NextRequest, { params }: RouteContext) {
+  const { companyId, campaignId } = await params;
+
   try {
-    const { companyId, campaignId } = params;
     const rawData = await request.json();
 
     const validatedData = campaignUpdateSchema.parse(rawData);
@@ -84,7 +86,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       );
     }
-    console.error(`Erro ao atualizar campanha ${params.campaignId}:`, error);
+
+    console.error(`Erro ao atualizar campanha ${campaignId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -94,9 +97,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
  * @description Deleta uma campanha específica.
  */
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  try {
-    const { companyId, campaignId } = params;
+  const { companyId, campaignId } = await params;
 
+  try {
     const campaignRef = db
       .collection('companies')
       .doc(companyId)
@@ -122,7 +125,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar campanha ${params.campaignId}:`, error);
+    console.error(`Erro ao deletar campanha ${campaignId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

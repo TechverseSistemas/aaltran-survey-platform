@@ -1,17 +1,14 @@
 import { db } from '@/lib/firebase';
+import { positionSchema } from '@/schemas/organizational';
 import { FieldValue } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const positionCreateSchema = z.object({
-  name: z.string().min(1, 'O nome do cargo é obrigatório.'),
-});
-
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     departmentId: string;
-  };
+  }>;
 }
 
 /**
@@ -19,11 +16,12 @@ interface RouteContext {
  * @description Cria um novo cargo dentro de um departamento específico.
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  const { companyId, departmentId } = await params;
+
   try {
-    const { companyId, departmentId } = params;
     const rawData = await request.json();
 
-    const validatedData = positionCreateSchema.parse(rawData);
+    const validatedData = positionSchema.parse(rawData);
 
     const positionsRef = db
       .collection('companies')
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    console.error(`Erro ao criar cargo para o departamento ${params.departmentId}:`, error);
+    console.error(`Erro ao criar cargo para o departamento ${departmentId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -58,8 +56,9 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @description Retorna uma lista de todos os cargos de um departamento específico.
  */
 export async function GET(request: NextRequest, { params }: RouteContext) {
+  const { companyId, departmentId } = await params;
+
   try {
-    const { companyId, departmentId } = params;
     const positionsRef = db
       .collection('companies')
       .doc(companyId)
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(positions, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar cargos do departamento ${params.departmentId}:`, error);
+    console.error(`Erro ao buscar cargos do departamento ${departmentId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

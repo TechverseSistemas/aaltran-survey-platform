@@ -44,15 +44,15 @@ export default function CreateEmployeeDialog() {
   const form = useForm<z.infer<typeof employeeCreateSchema>>({
     resolver: zodResolver(employeeCreateSchema),
     defaultValues: {
-      id_position: '',
-      id_departament: '',
+      positionId: '',
+      departmentId: '',
       name: '',
       cpf: '',
       birth_date: new Date(),
       gender: undefined,
       scholarity: undefined,
       admission_date: new Date(),
-      leader: false,
+      isLeader: false,
     },
   });
 
@@ -85,7 +85,7 @@ export default function CreateEmployeeDialog() {
 
       <DialogContent className="no-scrollbar h-full max-h-[80vh] w-full max-w-md overflow-y-scroll">
         <DialogHeader>
-          <DialogTitle>Cadastrar Novo Funcionário</DialogTitle>
+          <DialogTitle>Novo Funcionário</DialogTitle>
           <DialogDescription>Preencha os dados do colaborador</DialogDescription>
         </DialogHeader>
 
@@ -159,7 +159,7 @@ export default function CreateEmployeeDialog() {
 
             <FormField
               control={form.control}
-              name="id_departament"
+              name="departmentId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Departamento</FormLabel>
@@ -186,7 +186,7 @@ export default function CreateEmployeeDialog() {
 
             <FormField
               control={form.control}
-              name="id_position"
+              name="positionId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cargo</FormLabel>
@@ -340,7 +340,7 @@ export default function CreateEmployeeDialog() {
 
             <FormField
               control={form.control}
-              name="leader"
+              name="isLeader"
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-1 pt-4">
                   <FormControl>
@@ -357,7 +357,7 @@ export default function CreateEmployeeDialog() {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Cadastrar funcionário</Button>
+              <Button type="submit">Criar funcionário</Button>
             </DialogFooter>
           </form>
         </Form>

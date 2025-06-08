@@ -1,16 +1,13 @@
 import { db } from '@/lib/firebase';
+import { departmentSchema } from '@/schemas/organizational';
 import { FieldValue } from 'firebase-admin/firestore';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const departmentCreateSchema = z.object({
-  name: z.string().min(1, 'O nome do departamento é obrigatório.'),
-});
-
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
-  };
+  }>;
 }
 
 /**
@@ -18,11 +15,12 @@ interface RouteContext {
  * @description Cria um novo departamento dentro de uma empresa específica.
  */
 export async function POST(request: Request, { params }: RouteContext) {
+  const { companyId } = await params;
+
   try {
-    const { companyId } = params;
     const rawData = await request.json();
 
-    const validatedData = departmentCreateSchema.parse(rawData);
+    const validatedData = departmentSchema.parse(rawData);
 
     const departmentsRef = db.collection('companies').doc(companyId).collection('departments');
 
@@ -51,7 +49,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       );
     }
 
-    console.error(`Erro ao criar departamento para a empresa ${params.companyId}:`, error);
+    console.error(`Erro ao criar departamento para a empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -61,8 +59,9 @@ export async function POST(request: Request, { params }: RouteContext) {
  * @description Retorna uma lista de todos os departamentos de uma empresa específica.
  */
 export async function GET(request: Request, { params }: RouteContext) {
+  const { companyId } = await params;
+
   try {
-    const { companyId } = params;
     const departmentsRef = db.collection('companies').doc(companyId).collection('departments');
     const snapshot = await departmentsRef.orderBy('name').get();
 
@@ -77,7 +76,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     return NextResponse.json(departments, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar departamentos da empresa ${params.companyId}:`, error);
+    console.error(`Erro ao buscar departamentos da empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

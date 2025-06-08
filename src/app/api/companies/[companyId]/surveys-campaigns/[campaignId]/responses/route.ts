@@ -12,10 +12,10 @@ const responseCreateSchema = z.object({
 });
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     campaignId: string;
-  };
+  }>;
 }
 
 /**
@@ -23,8 +23,9 @@ interface RouteContext {
  * @description Submete uma nova resposta para uma campanha de pesquisa.
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  const { companyId, campaignId } = await params;
+
   try {
-    const { companyId, campaignId } = params;
     const rawData = await request.json();
 
     const validatedData = responseCreateSchema.parse(rawData);
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    console.error(`Erro ao submeter resposta para a campanha ${params.campaignId}:`, error);
+    console.error(`Erro ao submeter resposta para a campanha ${campaignId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -89,9 +90,9 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @description Retorna a lista de respostas de uma campanha para análise e dashboards.
  */
 export async function GET(request: Request, { params }: RouteContext) {
-  try {
-    const { companyId, campaignId } = params;
+  const { companyId, campaignId } = await params;
 
+  try {
     const campaignRef = db
       .collection('companies')
       .doc(companyId)
@@ -132,7 +133,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     return NextResponse.json(responses, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar respostas da campanha ${params.campaignId}:`, error);
+    console.error(`Erro ao buscar respostas da campanha ${campaignId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

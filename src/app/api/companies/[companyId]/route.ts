@@ -21,9 +21,9 @@ const companyUpdateSchema = z
   .partial();
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
-  };
+  }>;
 }
 
 /**
@@ -31,8 +31,9 @@ interface RouteContext {
  * @description Busca os dados de uma empresa específica.
  */
 export async function GET(request: Request, { params }: RouteContext) {
+  const { companyId } = await params;
+
   try {
-    const { companyId } = params;
     const docRef = db.collection('companies').doc(companyId);
     const docSnap = await docRef.get();
 
@@ -42,7 +43,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() }, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar empresa ${params.companyId}:`, error);
+    console.error(`Erro ao buscar empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -52,8 +53,9 @@ export async function GET(request: Request, { params }: RouteContext) {
  * @description Atualiza os dados de uma empresa específica.
  */
 export async function PUT(request: Request, { params }: RouteContext) {
+  const { companyId } = await params;
+
   try {
-    const { companyId } = params;
     const rawData = await request.json();
 
     const validatedData = companyUpdateSchema.parse(rawData);
@@ -88,7 +90,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
       );
     }
 
-    console.error(`Erro ao atualizar empresa ${params.companyId}:`, error);
+    console.error(`Erro ao atualizar empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -97,9 +99,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
  * @method DELETE
  * @description Deleta uma empresa específica.
  */
-export async function DELETE({ params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
+  const { companyId } = await params;
+
   try {
-    const { companyId } = params;
     const docRef = db.collection('companies').doc(companyId);
     const docSnap = await docRef.get();
 
@@ -117,7 +120,7 @@ export async function DELETE({ params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar empresa ${params.companyId}:`, error);
+    console.error(`Erro ao deletar empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

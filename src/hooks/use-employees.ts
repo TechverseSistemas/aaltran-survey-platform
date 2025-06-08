@@ -60,12 +60,12 @@ export function useCreateEmployee(companyId?: string) {
   });
 }
 
-export function useUpdateEmployee(companyId?: string) {
+export function useUpdateEmployee(companyId?: string, employeeId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: z.infer<typeof employeeUpdateSchema>) => {
-      const response = await fetch(`/api/companies/${companyId}/employees/${data.id}`, {
+      const response = await fetch(`/api/companies/${companyId}/employees/${employeeId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

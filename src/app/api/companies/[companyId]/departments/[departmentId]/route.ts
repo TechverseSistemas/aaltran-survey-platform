@@ -1,18 +1,13 @@
 import { db } from '@/lib/firebase';
+import { departmentSchema } from '@/schemas/organizational';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const departmentUpdateSchema = z
-  .object({
-    name: z.string().min(1, 'O nome do departamento é obrigatório.').optional(),
-  })
-  .partial();
-
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     departmentId: string;
-  };
+  }>;
 }
 
 /**
@@ -20,11 +15,12 @@ interface RouteContext {
  * @description Atualiza os dados de um departamento específico.
  */
 export async function PUT(request: Request, { params }: RouteContext) {
+  const { companyId, departmentId } = await params;
+
   try {
-    const { companyId, departmentId } = params;
     const rawData = await request.json();
 
-    const validatedData = departmentUpdateSchema.parse(rawData);
+    const validatedData = departmentSchema.parse(rawData);
 
     if (Object.keys(validatedData).length === 0) {
       return NextResponse.json(
@@ -55,7 +51,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
       );
     }
 
-    console.error(`Erro ao atualizar departamento ${params.departmentId}:`, error);
+    console.error(`Erro ao atualizar departamento ${departmentId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -64,10 +60,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
  * @method DELETE
  * @description Deleta um departamento específico.
  */
-export async function DELETE({ params }: RouteContext) {
-  try {
-    const { companyId, departmentId } = params;
+export async function DELETE(request: Request, { params }: RouteContext) {
+  const { companyId, departmentId } = await params;
 
+  try {
     const departmentRef = db
       .collection('companies')
       .doc(companyId)
@@ -99,7 +95,7 @@ export async function DELETE({ params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar departamento ${params.departmentId}:`, error);
+    console.error(`Erro ao deletar departamento ${departmentId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

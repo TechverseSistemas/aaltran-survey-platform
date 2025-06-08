@@ -1,19 +1,13 @@
 import { db } from '@/lib/firebase';
+import { positionSchema } from '@/schemas/organizational';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-
-const positionUpdateSchema = z
-  .object({
-    name: z.string().min(1, 'O nome do cargo é obrigatório.').optional(),
-  })
-  .partial();
-
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     departmentId: string;
     positionId: string;
-  };
+  }>;
 }
 
 /**
@@ -21,11 +15,12 @@ interface RouteContext {
  * @description Atualiza os dados de um cargo específico.
  */
 export async function PUT(request: NextRequest, { params }: RouteContext) {
+  const { companyId, departmentId, positionId } = await params;
+
   try {
-    const { companyId, departmentId, positionId } = params;
     const rawData = await request.json();
 
-    const validatedData = positionUpdateSchema.parse(rawData);
+    const validatedData = positionSchema.parse(rawData);
 
     if (Object.keys(validatedData).length === 0) {
       return NextResponse.json(
@@ -57,7 +52,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       );
     }
-    console.error(`Erro ao atualizar cargo ${params.positionId}:`, error);
+
+    console.error(`Erro ao atualizar cargo ${positionId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
@@ -67,9 +63,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
  * @description Deleta um cargo específico.
  */
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  try {
-    const { companyId, departmentId, positionId } = params;
+  const { companyId, departmentId, positionId } = await params;
 
+  try {
     const positionRef = db
       .collection('companies')
       .doc(companyId)
@@ -101,7 +97,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar cargo ${params.positionId}:`, error);
+    console.error(`Erro ao deletar cargo ${positionId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

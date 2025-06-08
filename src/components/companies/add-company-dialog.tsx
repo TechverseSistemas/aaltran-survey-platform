@@ -41,8 +41,6 @@ import { z } from 'zod';
 import { useCreateCompanyMutation } from '@/hooks/use-companies';
 import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
 
-
-
 const cnpjMask = '00.000.000/0000-00';
 
 const phoneMaskDefinition = [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }];
@@ -51,7 +49,7 @@ export default function AddCompanyDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const queryClient = useQueryClient();
-  const { mutate: handleCreate } = useCreateCompanyMutation()
+  const { mutate: handleCreate } = useCreateCompanyMutation();
 
   const shadcnInputClassName =
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
@@ -282,7 +280,7 @@ export default function AddCompanyDialog() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Salvando...' : 'Cadastrar Empresa'}
+                {form.formState.isSubmitting ? 'Salvando...' : 'Criar Empresa'}
               </Button>
             </div>
           </form>

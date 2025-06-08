@@ -3,6 +3,8 @@
 import {
   Award,
   BarChart3,
+  Briefcase,
+  Building,
   Building2,
   FileText,
   Home,
@@ -51,6 +53,16 @@ const sidebarGroups = [
         title: 'Funcionários',
         url: '/employees',
         icon: Users,
+      },
+      {
+        title: 'Departamentos',
+        url: '/departments',
+        icon: Building,
+      },
+      {
+        title: 'Cargos',
+        url: '/positions',
+        icon: Briefcase,
       },
       {
         title: 'Importar Funcionários',
