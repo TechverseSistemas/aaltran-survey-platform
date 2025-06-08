@@ -1,26 +1,14 @@
-'use client';
+'use client'
 import EditCompanyDialog from '@/components/companies/edit-company-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Company } from '@/types/companies';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, Mail, Phone } from 'lucide-react';
 import DeleteAlert from './delete-alert';
+import { useGetCompaniesQuery } from '@/hooks/use-companies';
 
 export default function CompaniesList() {
-  const { data } = useQuery({
-    queryKey: ['companies'],
-    queryFn: fetchCompanies,
-    staleTime: 1000 * 60 * 5, // 5 minutes // 1 hour
-    initialData: [],
-  });
-  async function fetchCompanies() {
-    const req = await fetch('/api/companies', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const companies: Company[] = await req.json();
-    return companies;
-  }
+  const { data } = useGetCompaniesQuery()
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {data?.map((company) => (
