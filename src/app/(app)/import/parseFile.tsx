@@ -1,3 +1,4 @@
+import { Employee } from '@/types/employees';
 import * as XLSX from 'xlsx';
 
 export const expectedHeaders = [
@@ -9,16 +10,8 @@ export const expectedHeaders = [
   'Cargo'
 ];
 
-export type Funcionario = {
-  nome: string;
-  cpf: string;
-  email: string;
-  telefone: string;
-  departamento: string;
-  cargo: string;
-};
 
-export const parseExcel = async (file: File): Promise<Funcionario[]> => {
+export const parseExcel = async (file: File): Promise<Employee[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -40,7 +33,7 @@ export const parseExcel = async (file: File): Promise<Funcionario[]> => {
         return reject(new Error('Cabeçalhos da planilha não estão corretos.'));
       }
 
-      const funcionarios: Funcionario[] = rows
+      const funcionarios: Employee[] = rows
         .filter((row) => row.length > 0)
         .map((row) => ({
           nome: row[0]?.toString().trim() || '',

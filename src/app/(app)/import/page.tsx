@@ -1,7 +1,8 @@
 'use client';
 
 import type React from 'react';
-import { Company } from '@/lib/types/companies.type';
+import type { Company } from '@/types/companies';
+import type { Employee } from '@/types/employees';
 import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { parseExcel } from './parseFile';
 import { set } from 'react-hook-form';
+import { useCreateEmployee } from '@/hooks/use-employees';
 
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -36,6 +38,7 @@ export default function ImportPage() {
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const {mutate:createEmployee} = useCreateEmployee();
   type ImportResults = {
     total: number;
     sucesso: number;
@@ -106,7 +109,7 @@ export default function ImportPage() {
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
-      const funcionarios = await parseExcel(selectedFile);
+      const funcionarios:Employee[] = await parseExcel(selectedFile);
 
       const total = funcionarios.length;
       console.log(selectedCompany, 'selectedCompany');
@@ -115,12 +118,14 @@ export default function ImportPage() {
         const funcionario = funcionarios[i];
         console.log(`Importando funcionário ${i + 1}/${total}:`, funcionario);
 
-        // Chamada para sua API
-        // await fetch('/api/funcionarios', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(funcionario),
-        // });
+       createEmployee({
+          name: funcionario.name,
+          email: funcionario.email,
+          phone: funcionario.phone,
+          company: selectedCompany,
+          position: funcionario.position,
+          salary: funcionario.salary,
+          
 
         // if erro - salva em uma lista os dados dos funcionarios que deu erro
         // if ja cadastrado - salva em uma lista os dados dos funcionarios que ja foram cadastrados
