@@ -38,41 +38,10 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { z } from 'zod';
+import { useCreateCompanyMutation } from '@/hooks/use-companies';
+import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
 
-const companyFocalPointSchema = z.object({
-  name: z.string().min(1, { message: 'O nome do ponto focal é obrigatório.' }),
-  email: z
-    .string()
-    .email({ message: 'Formato de e-mail inválido.' })
-    .min(1, { message: 'O e-mail é obrigatório.' }),
-  phone: z
-    .string()
-    .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, {
-      // Ajustado para o formato (XX) XXXXX-XXXX (com 9 dígitos)
-      message: 'Formato de telefone inválido. Use (XX) XXXXX-XXXX.',
-    })
-    .min(1, { message: 'O telefone é obrigatório.' })
-    .or(
-      z.string().regex(/^\(\d{2}\)\s\d{4}-\d{4}$/, {
-        message: 'Formato de telefone inválido. Use (XX) XXXX-XXXX.',
-      })
-    ),
-});
 
-const companyFormSchema = z.object({
-  cnpj: z
-    .string()
-    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, {
-      message: 'Formato de CNPJ inválido. Use XX.XXX.XXX/XXXX-XX.',
-    })
-    .min(1, { message: 'O CNPJ é obrigatório.' }),
-  fantasy_name: z.string().min(1, { message: 'O nome fantasia é obrigatório.' }),
-  full_address: z.string().min(1, { message: 'O endereço completo é obrigatório.' }),
-  focal_point: companyFocalPointSchema,
-  owner: z.string().min(1, { message: 'O nome do proprietário é obrigatório.' }),
-});
-
-type CompanyFormData = z.infer<typeof companyFormSchema>;
 
 const cnpjMask = '00.000.000/0000-00';
 
@@ -82,23 +51,7 @@ export default function AddCompanyDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const queryClient = useQueryClient();
-  const { mutate: handleCreate } = useMutation({
-    mutationFn: async (values: Company) => {
-      const response = await fetch('/api/companies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(`Erro ao cadastrar empresa: ${errorData.msgRet}`);
-        return;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companies'] });
-    },
-  });
+  const { mutate: handleCreate } = useCreateCompanyMutation()
 
   const shadcnInputClassName =
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';

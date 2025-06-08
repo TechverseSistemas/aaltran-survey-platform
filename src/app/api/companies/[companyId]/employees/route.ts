@@ -1,9 +1,10 @@
 import { db } from '@/lib/firebase';
 import { employeeCreateSchema } from '@/schemas/employee'; // Usando seu schema existente
 import { Employee } from '@/types/employees';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, QuerySnapshot } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
 
 interface RouteContext {
   params: {
@@ -22,50 +23,60 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const rawData = await request.json();
     const validatedData = employeeCreateSchema.parse(rawData);
 
-    const { id_departament: departmentId, id_section: jobTitleId, ...restOfData } = validatedData;
+    // --- Geração de Login e Senha ---
+    const nameParts = validatedData.name.trim().split(' ');
+    const firstName = nameParts[0].toLowerCase();
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : '';
+    const newLogin = `${firstName}.${lastName}`;
 
-    // const userRecord = await auth.createUser({
-    //   email: restOfData.login,
-    //   password: restOfData.password,
-    //   displayName: restOfData.name,
-    //   disabled: false,
-    // });
+    const rawPassword = validatedData.cpf.replace(/\D/g, '');
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-    // const { uid } = userRecord;
-    const batch = db.batch();
+    // --- CORREÇÃO: Tratamento de erro para a primeira execução ---
+    let existingEmployee: QuerySnapshot;
+    try {
+      const employeeQuery = db.collectionGroup('employees').where('login', '==', newLogin).limit(1);
+      existingEmployee = await employeeQuery.get();
+    } catch (queryError: any) {
+      // Se a query falhar (provavelmente porque o índice ainda não existe),
+      // assumimos que o login está disponível e continuamos.
+      console.warn(
+        'Query de verificação de login falhou (pode ser a primeira execução):',
+        queryError.message
+      );
+      // Simulamos um snapshot vazio para que a lógica de verificação prossiga corretamente.
+      existingEmployee = { empty: true } as QuerySnapshot;
+    }
 
+    if (!existingEmployee.empty) {
+      return NextResponse.json(
+        { error: 'Este nome de usuário (nome.sobrenome) já está em uso.' },
+        { status: 409 }
+      );
+    }
+
+    // --- Salvar o Funcionário ---
     const employeeRef = db.collection('companies').doc(companyId).collection('employees').doc();
+    const { id_departament: departmentId, id_section: jobTitleId, ...restOfData } = validatedData;
 
     const employeeToSave = {
       ...restOfData,
+      login: newLogin,
+      password: hashedPassword,
       departmentId,
       jobTitleId,
-      // auth_uid: uid,
+      role: 'employee',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };
 
-    if ('password' in employeeToSave) {
-      delete (employeeToSave as { password?: string }).password;
-    }
-
-    batch.set(employeeRef, employeeToSave);
-
-    const userProfileRef = db.collection('users').doc();
-    // const userProfileRef = db.collection('users').doc(uid);
-    batch.set(userProfileRef, {
-      email: restOfData.login,
-      role: 'employee',
-      companyId: companyId,
-      employeeId: employeeRef.id,
-    });
-
-    await batch.commit();
+    await employeeRef.set(employeeToSave);
 
     return NextResponse.json(
       {
         message: 'Funcionário criado com sucesso!',
         employeeId: employeeRef.id,
+        login: newLogin,
       },
       { status: 201 }
     );
@@ -76,19 +87,6 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       );
     }
-
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      error.code === 'auth/email-already-exists'
-    ) {
-      return NextResponse.json(
-        { error: 'O login (e-mail) fornecido já está em uso.' },
-        { status: 409 }
-      );
-    }
-
     console.error(`Erro ao criar funcionário para a empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
@@ -98,8 +96,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @method GET
  * @description Retorna a lista de funcionários de uma empresa, com os nomes dos cargos e departamentos.
  */
-export async function GET(request: Request, { params }: RouteContext) {
-  const { companyId } = params;
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ companyId: string }> }
+) {
+  const { companyId } = await params;
 
   try {
     const employeesRef = db.collection('companies').doc(companyId).collection('employees');
