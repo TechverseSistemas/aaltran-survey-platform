@@ -2,7 +2,20 @@ import { isValidCPF } from '@/utils/is-valid-cpf';
 import z from 'zod';
 
 const employeeBaseSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome não pode exceder 100 caracteres'),
+  name: z
+    .string()
+    .min(1, 'Nome é obrigatório')
+    .max(100, 'Nome não pode exceder 100 caracteres')
+    .refine(
+      (name) => {
+        const nameParts = name.trim().split(' ');
+
+        return nameParts.length >= 2;
+      },
+      {
+        message: 'Por favor, insira o nome completo (nome e sobrenome).',
+      }
+    ),
   cpf: z.string().min(1, 'O CPF é obrigatório').refine(isValidCPF, 'CPF inválido'),
   departmentId: z.string().min(1, 'O departamento é obrigatório.'),
   positionId: z.string().min(1, 'O cargo é obrigatório.'),

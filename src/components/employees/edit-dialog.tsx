@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogClose,
@@ -11,6 +13,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -21,28 +31,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useGetDepartments } from '@/hooks/use-departments';
-import { useCreateEmployee } from '@/hooks/use-employees';
+import { useUpdateEmployee } from '@/hooks/use-employees';
 import { useGetPositions } from '@/hooks/use-positions';
 import { cn } from '@/lib/utils';
-import { employeeCreateSchema } from '@/schemas/employees';
+import { employeeUpdateSchema } from '@/schemas/employees';
 import { useSelectedCompanyStore } from '@/store/selected-company';
+import { Employee } from '@/types/employees';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Plus } from 'lucide-react';
+import { CalendarIcon, Edit } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
-import { z } from 'zod';
-import { Calendar } from '../ui/calendar';
-import { Checkbox } from '../ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import z from 'zod';
 
-export default function CreateEmployeeDialog() {
+interface Props {
+  employee: Employee;
+}
+
+export default function EditEmployeeDialog({ employee }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const form = useForm<z.infer<typeof employeeCreateSchema>>({
-    resolver: zodResolver(employeeCreateSchema),
+  const form = useForm<z.infer<typeof employeeUpdateSchema>>({
+    resolver: zodResolver(employeeUpdateSchema),
     defaultValues: {
       positionId: '',
       departmentId: '',
@@ -58,7 +70,7 @@ export default function CreateEmployeeDialog() {
 
   const watchedDepartmentId = form.watch('departmentId');
 
-  const { mutate: createEmployee } = useCreateEmployee(selectedCompany?.id);
+  const { mutate: CreateEmployee } = useUpdateEmployee(selectedCompany?.id, employee?.id);
   const { data: departments } = useGetDepartments(selectedCompany?.id);
   const { data: positions } = useGetPositions(selectedCompany?.id, watchedDepartmentId);
 
@@ -70,9 +82,9 @@ export default function CreateEmployeeDialog() {
     }
   }
 
-  function onSubmit(values: z.infer<typeof employeeCreateSchema>) {
+  function onSubmit(values: z.infer<typeof employeeUpdateSchema>) {
     try {
-      createEmployee(values);
+      CreateEmployee(values);
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
@@ -81,31 +93,33 @@ export default function CreateEmployeeDialog() {
   }
 
   useEffect(() => {
-    if (watchedDepartmentId && positions) {
-      const positionExists = positions.some(
-        (position) => position.id === form.getValues('positionId')
-      );
-      if (!positionExists) {
-        form.setValue('positionId', '');
-      }
-    } else {
-      form.setValue('positionId', '');
+    if (isDialogOpen && employee) {
+      form.reset({
+        name: employee.name,
+        cpf: employee.cpf,
+        departmentId: employee.departmentId,
+        positionId: employee.positionId,
+        isLeader: employee.isLeader,
+        gender: employee.gender,
+        scholarity: employee.scholarity,
+        birth_date: new Date(employee.birth_date),
+        admission_date: new Date(employee.admission_date),
+      });
     }
-  }, [watchedDepartmentId, positions, form]);
+  }, [isDialogOpen, employee, form]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-1 h-4 w-4" />
-          Novo Funcionário
+        <Button variant="ghost" size="sm">
+          <Edit className="h-4 w-4" />
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="no-scrollbar h-full max-h-[80vh] w-full max-w-md overflow-y-scroll">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo Funcionário</DialogTitle>
-          <DialogDescription>Preencha os dados do colaborador</DialogDescription>
+          <DialogTitle>Editar Funcionário</DialogTitle>
+          <DialogDescription>Preencha os dados do funcionário</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -382,7 +396,7 @@ export default function CreateEmployeeDialog() {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Criar funcionário</Button>
+              <Button type="submit">Editar Funcionário</Button>
             </DialogFooter>
           </form>
         </Form>

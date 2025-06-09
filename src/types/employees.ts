@@ -1,7 +1,3 @@
-import { FieldValue } from 'firebase-admin/firestore';
-
-type FirestoreTimestamp = Date | FieldValue;
-
 export type Gender = 'Masculino' | 'Feminino';
 export type Scholarity =
   | 'ensino_fundamental'
@@ -14,17 +10,22 @@ export type Scholarity =
 export interface Employee {
   id: string;
   departmentId: string;
+  departmentName?: string;
   positionId: string;
+  positionName?: string;
   name: string;
+  login: string;
+  password?: string;
+  role: 'employee' | 'company_admin' | 'super_admin';
   cpf: string;
-  birth_date: FirestoreTimestamp;
-  admission_date: FirestoreTimestamp;
+  birth_date: Date;
+  admission_date: Date;
   gender: Gender;
   scholarity: Scholarity;
   isLeader: boolean;
-  role: 'employee' | 'company_admin' | 'super_admin';
-  createdAt?: FirestoreTimestamp;
-  updatedAt?: FirestoreTimestamp;
+  reportsTo?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface FullEmployee extends Employee {
