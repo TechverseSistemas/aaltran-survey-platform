@@ -85,34 +85,56 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
  * @description Retorna a lista de funcionários com os nomes de cargo e departamento, usando a nova estrutura.
  */
 export async function GET(request: NextRequest, { params }: RouteContext) {
+  // VERIFICAÇÃO FINAL DO PROJETO CONECTADO
+  // console.log(`[DEBUG] Conectado ao Projeto Firebase ID: ${db.app.options.projectId}`);
+  
   const { companyId } = await params;
 
+  if (!companyId) {
+    return NextResponse.json({ error: 'ID da empresa não fornecido.' }, { status: 400 });
+  }
+
   try {
-    const employeesRef = db.collection('companies').doc(companyId).collection('employees');
-    const employeesSnapshot = await employeesRef.orderBy('name').get();
+    const companyRef = db.collection('companies').doc(companyId);
+
+    // A busca de funcionários funciona, então a referência à empresa está correta.
+    const employeesSnapshot = await companyRef.collection('employees').orderBy('name').get();
     if (employeesSnapshot.empty) {
       return NextResponse.json([], { status: 200 });
     }
     const employeesData = employeesSnapshot.docs.map(
       (doc) => ({ id: doc.id, ...doc.data() }) as Employee
     );
+    
+    // O problema está aqui. A referência à coleção "departaments" não encontra nada.
+    // VERIFIQUE O NOME DA COLEÇÃO NO SEU BANCO DE DADOS.
+    const departamentsRef = companyRef.collection('departments'); // <--- O NOME AQUI ESTÁ IGUAL AO DO FIREBASE?
+    const departamentsSnapshot = await departamentsRef.get();
+    
+    // O resto do código está correto, mas depende do sucesso da linha acima.
+    const departamentsMap = new Map<string, string>();
+    const departamentIds: string[] = [];
+    departamentsSnapshot.forEach((doc) => {
+      departamentsMap.set(doc.id, doc.data()?.name);
+      departamentIds.push(doc.id);
+    });
 
-    const departmentsRef = db.collection('companies').doc(companyId).collection('departments');
-    const departmentsSnapshot = await departmentsRef.get();
-    const departmentsMap = new Map(
-      departmentsSnapshot.docs.map((doc) => [doc.id, doc.data()?.name])
+    console.log(`[DEBUG] Departamentos encontrados: ${departamentIds.length}`);
+
+    const positionPromises = departamentIds.map((deptId) =>
+      departamentsRef.doc(deptId).collection('positions').get()
     );
-
-    const positionsSnapshot = await db
-      .collectionGroup('positions')
-      .where('__name__', '>=', `companies/${companyId}/departments`)
-      .where('__name__', '<', `companies/${companyId}/departments0`)
-      .get();
-    const positionsMap = new Map(positionsSnapshot.docs.map((doc) => [doc.id, doc.data()?.name]));
-
+    const positionSnapshots = await Promise.all(positionPromises);
+    const positionsMap = new Map<string, string>();
+    positionSnapshots.forEach((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        positionsMap.set(doc.id, doc.data()?.name);
+      });
+    });
+    
     const fullEmployees = employeesData.map((employee) => ({
       ...employee,
-      departmentName: departmentsMap.get(employee.departmentId) || 'Não informado',
+      departmentName: departamentsMap.get(employee.departmentId) || 'Não informado',
       positionName: positionsMap.get(employee.positionId) || 'Não informado',
     }));
 
@@ -122,3 +144,4 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
+

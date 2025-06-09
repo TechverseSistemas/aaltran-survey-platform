@@ -38,7 +38,7 @@ export default function ImportPage() {
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const {mutate:createEmployee} = useCreateEmployee();
+  const { mutate: createEmployee } = useCreateEmployee();
   type ImportResults = {
     total: number;
     sucesso: number;
@@ -109,7 +109,7 @@ export default function ImportPage() {
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
-      const funcionarios:Employee[] = await parseExcel(selectedFile);
+      const funcionarios: Employee[] = await parseExcel(selectedFile);
 
       const total = funcionarios.length;
       console.log(selectedCompany, 'selectedCompany');
@@ -118,14 +118,17 @@ export default function ImportPage() {
         const funcionario = funcionarios[i];
         console.log(`Importando funcionário ${i + 1}/${total}:`, funcionario);
 
-       createEmployee({
+        createEmployee({
           name: funcionario.name,
-          email: funcionario.email,
-          phone: funcionario.phone,
-          company: selectedCompany,
-          position: funcionario.position,
-          salary: funcionario.salary,
-          
+          admission_date: funcionario.admission_date as Date,
+          birth_date: funcionario.birth_date as Date,
+          cpf: funcionario.cpf,
+          departmentId: funcionario.departmentId,
+          isLeader: funcionario.isLeader,
+          gender: funcionario.gender,
+          positionId: funcionario.positionId,
+          scholarity: funcionario.scholarity,
+        });
 
         // if erro - salva em uma lista os dados dos funcionarios que deu erro
         // if ja cadastrado - salva em uma lista os dados dos funcionarios que ja foram cadastrados
@@ -134,9 +137,9 @@ export default function ImportPage() {
         await sleep(300);
         setImportProgress(newProgress);
       }
-      
+
       setImportProgress(100);
-      
+
       setImportResults({
         total: total,
         sucesso: total - 1,
@@ -144,9 +147,19 @@ export default function ImportPage() {
         jaCadastrados: 0,
       });
     } catch (error) {
-      console.error('Erro ao importar:', error);
+      console.error('Erro ao processar o arquivo:', error);
+      setImportResults({
+        total: 0,
+        sucesso: 0,
+        erros: 1,
+        jaCadastrados: 0,
+      });
     } finally {
       setIsImporting(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   }, [selectedFile, selectedCompany]);
 
@@ -315,7 +328,6 @@ export default function ImportPage() {
                   onClick={() => {
                     // Criar arquivo excel com os dados dos funcionarios e seus erros
                     downloadTemplate();
-
                   }}
                 >
                   <Download className="mr-2 h-3 w-3" />
