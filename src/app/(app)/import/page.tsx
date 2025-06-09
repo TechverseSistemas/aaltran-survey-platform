@@ -31,6 +31,7 @@ import { useQuery } from '@tanstack/react-query';
 import { parseExcel } from './parseFile';
 import { set } from 'react-hook-form';
 import { useCreateEmployee } from '@/hooks/use-employees';
+import { useImportXml } from '@/hooks/use-import';
 
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -46,7 +47,7 @@ export default function ImportPage() {
     jaCadastrados: number;
   };
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
-
+  const { mutate: importXml } = useImportXml();
   const { data } = useQuery({
     queryKey: ['companies'],
     queryFn: fetchCompanies,
@@ -101,51 +102,54 @@ export default function ImportPage() {
     }
   }, []);
 
-  const handleImport = useCallback(async () => {
-    if (!selectedFile || !selectedCompany) return;
+const handleImport = useCallback(async () => {
+    if (!selectedFile || !selectedCompany) {
+      // You might want to show a warning to the user here
+      return;
+    }
 
-    setIsImporting(true);
-    setImportProgress(0);
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    setIsImporting(true); // Keep your local loading state if you want
+    setImportProgress(0); // Reset progress
 
     try {
-      const funcionarios: Employee[] = await parseExcel(selectedFile);
+      const formData = new FormData();
+      formData.append('companyId', selectedCompany);
+      formData.append('file', selectedFile); // Append the actual File object
 
-      const total = funcionarios.length;
-      console.log(selectedCompany, 'selectedCompany');
-
-      for (let i = 0; i < total; i++) {
-        const funcionario = funcionarios[i];
-        console.log(`Importando funcionário ${i + 1}/${total}:`, funcionario);
-
-        createEmployee({
-          name: funcionario.name,
-          admission_date: funcionario.admission_date as Date,
-          birth_date: funcionario.birth_date as Date,
-          cpf: funcionario.cpf,
-          departmentId: funcionario.departmentId,
-          isLeader: funcionario.isLeader,
-          gender: funcionario.gender,
-          positionId: funcionario.positionId,
-          scholarity: funcionario.scholarity,
-        });
-
-        // if erro - salva em uma lista os dados dos funcionarios que deu erro
-        // if ja cadastrado - salva em uma lista os dados dos funcionarios que ja foram cadastrados
-        // if sucesso - salva em uma lista o numero de funcionarios que foram cadastrados com sucesso
-        const newProgress = Math.round(((i + 1) / total) * 100);
-        await sleep(300);
-        setImportProgress(newProgress);
-      }
-
-      setImportProgress(100);
-
-      setImportResults({
-        total: total,
-        sucesso: total - 1,
-        erros: 1,
-        jaCadastrados: 0,
+      console.log('Enviando para importação:', {
+        companyId: selectedCompany,
+        fileName: selectedFile.name, // Log file name for debugging
       });
+
+      // Call the mutation with FormData
+      const result = await importXml(formData, {
+        onSuccess: (data) => {
+          setImportProgress(100);
+          setImportResults({
+            total: data.successCount + data.failedCount, // Assuming total is sum of success and failed
+            sucesso: data.successCount,
+            erros: data.failedCount,
+            jaCadastrados: 0, // Your backend doesn't explicitly return this, adjust if needed
+          });
+        },
+        onError: (error) => {
+          console.error('Erro ao importar o arquivo:', error);
+          setImportResults({
+            total: 0,
+            sucesso: 0,
+            erros: 1, // Indicate an error occurred
+            jaCadastrados: 0,
+          });
+        },
+        onSettled: () => {
+          setIsImporting(false);
+          setSelectedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
+      });
+
     } catch (error) {
       console.error('Erro ao processar o arquivo:', error);
       setImportResults({
@@ -154,14 +158,10 @@ export default function ImportPage() {
         erros: 1,
         jaCadastrados: 0,
       });
-    } finally {
-      setIsImporting(false);
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setIsImporting(false); // Ensure loading state is reset even if catch block is hit directly
     }
-  }, [selectedFile, selectedCompany]);
+    // Remove the finally block, as onSuccess/onError/onSettled in mutate options handle cleanup
+  }, [selectedFile, selectedCompany, importXml])
 
   const downloadTemplate = () => {
     const link = document.createElement('a');
@@ -212,7 +212,7 @@ export default function ImportPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {data?.map((empresa) => (
-                    <SelectItem key={empresa.id} value={empresa.fantasy_name}>
+                    <SelectItem key={empresa.id} value={empresa.id}>
                       {empresa.fantasy_name}
                     </SelectItem>
                   ))}

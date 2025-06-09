@@ -7,13 +7,13 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
-  };
+  }>;
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
-  const { companyId } = params;
+  const { companyId } = await params;
 
   try {
     const rawData = await request.json();
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
-  const { companyId } = params;
+  const { companyId } = await params;
   try {
     const employeesRef = db.collection('companies').doc(companyId).collection('employees');
     const employeesSnapshot = await employeesRef.orderBy('name').get();

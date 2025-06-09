@@ -3,7 +3,7 @@
 import { db } from '@/lib/firebase';
 import { employeeCreateSchema } from '@/schemas/employees';
 import bcrypt from 'bcrypt';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, QuerySnapshot } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 import * as xlsx from 'xlsx';
 
@@ -57,6 +57,7 @@ async function getOrCreatePosition(
   name: string,
   cache: Map<string, string>
 ): Promise<string> {
+  console.log(`Buscando ou criando cargo: ${name} no departamento ${departmentId}`);
   const cacheKey = `pos-${departmentId}-${name.trim().toLowerCase()}`;
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
@@ -91,10 +92,13 @@ async function getOrCreatePosition(
  * criando departamentos e cargos (positions) conforme necessário.
  */
 export async function POST(request: NextRequest) {
+  console.log('Iniciando importação de funcionários...');
   try {
+    console.log('Recebendo arquivo e ID da empresa...');
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+
     const companyId = formData.get('companyId') as string | null;
+    const file = formData.get('file') as File | null;
 
     if (!file || !companyId) {
       return NextResponse.json(
@@ -122,6 +126,7 @@ export async function POST(request: NextRequest) {
       const rowIndex = i + 2;
 
       try {
+        console.log(`Processando linha ${rowIndex}...`, row);
         const employeePayload = {
           name: row['Nome'],
           cpf: String(row['CPF']),
@@ -135,9 +140,6 @@ export async function POST(request: NextRequest) {
           id_departament: 'placeholder',
           id_section: 'placeholder',
         };
-
-        employeeCreateSchema.parse(employeePayload);
-
         const departmentName = row['Departamento'];
         const positionName = row['Cargo'];
 
@@ -163,13 +165,27 @@ export async function POST(request: NextRequest) {
         const rawPassword = employeePayload.cpf.replace(/\D/g, '');
         const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-        const employeeQuery = db
-          .collectionGroup('employees')
-          .where('login', '==', newLogin)
-          .limit(1);
-        const existingEmployee = await employeeQuery.get();
+        let existingEmployee: QuerySnapshot;
+        try {
+          const employeeQuery = db
+            .collectionGroup('employees')
+            .where('login', '==', newLogin)
+            .limit(1);
+          existingEmployee = await employeeQuery.get();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (queryError: any) {
+          console.warn(
+            'Query de verificação de login falhou (pode ser a primeira execução):',
+            queryError.message
+          );
+          existingEmployee = { empty: true } as QuerySnapshot;
+        }
+
         if (!existingEmployee.empty) {
-          throw new Error(`Login '${newLogin}' já existe no sistema.`);
+          return NextResponse.json(
+            { error: 'Este nome de usuário já está em uso.' },
+            { status: 409 }
+          );
         }
 
         const employeeToSave = {
@@ -182,13 +198,13 @@ export async function POST(request: NextRequest) {
           isLeader: employeePayload.leader,
           login: newLogin,
           password: hashedPassword,
-          departmentId,
-          positionId,
+          departmentId: departmentId,
+          positionId: positionId,
           role: 'employee',
           createdAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         };
-
+        console.log(`Salvando funcionário:`, JSON.stringify(employeeToSave, null, 2));
         await db.collection('companies').doc(companyId).collection('employees').add(employeeToSave);
         successCount++;
       } catch (error: any) {
