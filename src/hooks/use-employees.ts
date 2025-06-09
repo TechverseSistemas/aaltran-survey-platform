@@ -1,4 +1,4 @@
-import { employeeCreateSchema, employeeUpdateSchema } from '@/schemas/employee';
+import { employeeCreateSchema, employeeUpdateSchema } from '@/schemas/employees';
 import { Employee } from '@/types/employees';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import z from 'zod';
@@ -81,17 +81,21 @@ export function useUpdateEmployee(companyId?: string, employeeId?: string) {
   });
 }
 
-export function useDeleteEmployee(companyId?: string) {
+export function useDeleteEmployee(companyId?: string, employeeId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (employeeId: string) => {
+    mutationFn: async () => {
       const response = await fetch(`/api/companies/${companyId}/employees/${employeeId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+
+      if (response.status === 204) {
+        return null;
+      }
 
       return response.json();
     },

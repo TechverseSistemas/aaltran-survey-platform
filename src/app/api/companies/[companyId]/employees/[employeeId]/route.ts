@@ -1,25 +1,21 @@
 import { db } from '@/lib/firebase';
-import { employeeUpdateSchema } from '@/schemas/employee';
+import { employeeUpdateSchema } from '@/schemas/employees';
 import { Employee, FullEmployee } from '@/types/employees';
 import { FieldValue } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 interface RouteContext {
-  params: Promise<{
+  params: {
     companyId: string;
     employeeId: string;
-  }>;
+  };
 }
 
-/**
- * @method GET
- * @description Busca um funcionário específico com os nomes de cargo e departamento.
- */
 export async function GET(request: NextRequest, { params }: RouteContext) {
-  const { companyId, employeeId } = await params;
-
   try {
+    const { companyId, employeeId } = params;
+
     const employeeRef = db
       .collection('companies')
       .doc(companyId)
@@ -33,25 +29,40 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     const employeeData = { id: employeeSnap.id, ...employeeSnap.data() } as Employee;
 
-    const [departmentSnap, positionSnap] = await Promise.all([
-      db
-        .collection('companies')
-        .doc(companyId)
-        .collection('departments')
-        .doc(employeeData.departmentId)
-        .get(),
-      db
-        .collection('companies')
-        .doc(companyId)
-        .collection('departments')
-        .doc(employeeData.departmentId)
-        .collection('positions')
-        .doc(employeeData.positionId)
-        .get(),
-    ]);
+    const promises = [];
 
-    const departmentName = departmentSnap.exists ? departmentSnap.data()?.name : 'Não informado';
-    const positionName = positionSnap.exists ? positionSnap.data()?.name : 'Não informado';
+    if (employeeData.departmentId) {
+      promises.push(
+        db
+          .collection('companies')
+          .doc(companyId)
+          .collection('departments')
+          .doc(employeeData.departmentId)
+          .get()
+      );
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    if (employeeData.departmentId && employeeData.positionId) {
+      promises.push(
+        db
+          .collection('companies')
+          .doc(companyId)
+          .collection('departments')
+          .doc(employeeData.departmentId)
+          .collection('positions')
+          .doc(employeeData.positionId)
+          .get()
+      );
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    const [departmentSnap, positionSnap] = await Promise.all(promises);
+
+    const departmentName = departmentSnap?.exists ? departmentSnap.data()?.name : 'Não informado';
+    const positionName = positionSnap?.exists ? positionSnap.data()?.name : 'Não informado';
 
     const fullEmployeeData: FullEmployee = {
       ...employeeData,
@@ -61,19 +72,14 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(fullEmployeeData, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar funcionário ${employeeId}:`, error);
+    console.error(`Erro ao buscar funcionário ${params.employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
-/**
- * @method PUT
- * @description Atualiza os dados de um funcionário.
- */
 export async function PUT(request: NextRequest, { params }: RouteContext) {
-  const { companyId, employeeId } = await params;
-
   try {
+    const { companyId, employeeId } = params;
     const rawData = await request.json();
 
     const validatedData = employeeUpdateSchema.parse(rawData);
@@ -90,10 +96,6 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       .doc(companyId)
       .collection('employees')
       .doc(employeeId);
-    const docSnap = await employeeRef.get();
-    if (!docSnap.exists) {
-      return NextResponse.json({ error: 'Funcionário não encontrado.' }, { status: 404 });
-    }
 
     await employeeRef.update({
       ...validatedData,
@@ -108,27 +110,21 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       );
     }
-
-    console.error(`Erro ao atualizar funcionário ${employeeId}:`, error);
+    console.error(`Erro ao atualizar funcionário ${params.employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
-/**
- * @method DELETE
- * @description Deleta um funcionário do banco de dados.
- */
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  const { companyId, employeeId } = await params;
-
   try {
+    const { companyId, employeeId } = params;
     const employeeRef = db
       .collection('companies')
       .doc(companyId)
       .collection('employees')
       .doc(employeeId);
-    const employeeSnap = await employeeRef.get();
 
+    const employeeSnap = await employeeRef.get();
     if (!employeeSnap.exists) {
       return NextResponse.json({ error: 'Funcionário não encontrado.' }, { status: 404 });
     }
@@ -137,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar funcionário ${employeeId}:`, error);
+    console.error(`Erro ao deletar funcionário ${params.employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }

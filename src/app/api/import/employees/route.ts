@@ -1,7 +1,7 @@
 // src/app/api/import/employees/route.ts
 
 import { db } from '@/lib/firebase';
-import { employeeCreateSchema } from '@/schemas/employee';
+import { employeeCreateSchema } from '@/schemas/employees';
 import bcrypt from 'bcrypt';
 import { FieldValue } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';

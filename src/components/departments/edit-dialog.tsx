@@ -76,7 +76,7 @@ export default function EditDepartmentDialog({ department }: Props) {
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo Departamento</DialogTitle>
+          <DialogTitle>Editar Departamento</DialogTitle>
           <DialogDescription>Preencha os dados do departamento</DialogDescription>
         </DialogHeader>
 
