@@ -29,10 +29,10 @@ export function useCreateCompanyMutation() {
         body: JSON.stringify(values),
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        alert(`Erro ao cadastrar empresa: ${errorData.msgRet}`);
-        return;
+        const error = await response.json();
+        throw new Error(error.error || 'Ocorreu uma falha ao criar a Empresa.');
       }
+      return response.json() as Promise<Company>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });

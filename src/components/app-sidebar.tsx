@@ -100,16 +100,6 @@ const sidebarGroups = [
         icon: Target,
       },
       {
-        title: 'Avaliações 180°',
-        url: '/avaliacao-180',
-        icon: Target,
-      },
-      {
-        title: 'Avaliações 360°',
-        url: '/avaliacao-360',
-        icon: Target,
-      },
-      {
         title: 'Nine Box',
         url: '/nine-box',
         icon: Award,

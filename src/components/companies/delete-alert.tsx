@@ -13,12 +13,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Company } from '@/types/companies';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function DeleteAlert({ company }: { company: Company }) {
   const queryClient = useQueryClient();
-  const { mutateAsync: handleDelete, isPending } = useMutation({
+  const { mutateAsync: handleDeleteMutation, isPending } = useMutation({
     mutationFn: async (companyId: string) => {
-      const response = await fetch('/api/companies', {
+      const response = await fetch(`/api/companies/${company?.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: companyId }),
@@ -33,6 +34,18 @@ export default function DeleteAlert({ company }: { company: Company }) {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
     },
   });
+
+  async function handleDelete(companyId: string) {
+    try {
+      await handleDeleteMutation(companyId);
+      toast.success('Empresa excluída com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir Empresa:', error);
+      toast.error('Ocorreu um erro ao excluir a Empresa. Tente novamente mais tarde.', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
+  }
   return (
     <AlertDialog>
       <AlertDialogTrigger>
@@ -42,21 +55,21 @@ export default function DeleteAlert({ company }: { company: Company }) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Deseja realmente Deletar essa Empresa ?</AlertDialogTitle>
+          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your account and remove your
-            data from our servers.
+            Tem certeza que deseja excluir a empresa {company.fantasy_name}? Esta ação não pode ser
+            desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             disabled={isPending}
             onClick={async () => {
               handleDelete(company.id ?? '');
             }}
           >
-            Confirmar
+            Excluir
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

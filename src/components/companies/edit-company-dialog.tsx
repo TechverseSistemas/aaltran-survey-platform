@@ -24,6 +24,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 const companyFocalPointSchema = z.object({
@@ -71,16 +72,16 @@ export default function EditCompanyDialog({ company }: { company: Company | null
   const queryClient = useQueryClient();
   const { mutateAsync: handleEdit, isPending } = useMutation({
     mutationFn: async (editValues: Company) => {
-      const response = await fetch(`/api/companies/`, {
+      const response = await fetch(`/api/companies/${company?.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editValues),
       });
       if (!response.ok) {
         const errorData = await response.json();
-        alert(`Erro ao editar empresa: ${errorData.msgRet}`);
-        return;
+        throw new Error(errorData.error || 'Erro ao deletar empresa');
       }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
@@ -105,13 +106,21 @@ export default function EditCompanyDialog({ company }: { company: Company | null
   });
 
   async function onSubmit(values: CompanyFormData) {
-    const editValues: Partial<Company> = {
-      ...selectedCompany,
-      ...values,
-    };
-    handleEdit(editValues as Company);
-    form.reset();
-    setIsDialogOpen(false);
+    try {
+      const editValues: Partial<Company> = {
+        ...selectedCompany,
+        ...values,
+      };
+      await handleEdit(editValues as Company);
+      form.reset();
+      setIsDialogOpen(false);
+      toast.success('Empresa editada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao editar Empresa:', error);
+      toast.error('Ocorreu um erro ao editar a Empresa. Tente novamente mais tarde.', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
   }
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

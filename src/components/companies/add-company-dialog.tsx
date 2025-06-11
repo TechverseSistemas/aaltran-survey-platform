@@ -25,6 +25,7 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
+import { toast } from 'sonner';
 
 const cnpjMask = '00.000.000/0000-00';
 
@@ -53,9 +54,17 @@ export default function AddCompanyDialog() {
   });
 
   async function onSubmit(values: CompanyFormData) {
-    await handleCreate(values);
-    form.reset();
-    setIsDialogOpen(false);
+    try {
+      await handleCreate(values);
+      form.reset();
+      setIsDialogOpen(false);
+      toast.success('Empresa adicionada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar Empresa:', error);
+      toast.error('Ocorreu um erro ao criar a Empresa. Tente novamente mais tarde.', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
   }
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -84,3 +84,6 @@ export async function GET() {
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
+
+
+
