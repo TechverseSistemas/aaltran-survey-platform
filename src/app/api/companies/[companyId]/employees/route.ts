@@ -76,6 +76,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
   const { companyId } = await params;
+
   try {
     const employeesRef = db.collection('companies').doc(companyId).collection('employees');
     const employeesSnapshot = await employeesRef.orderBy('name').get();

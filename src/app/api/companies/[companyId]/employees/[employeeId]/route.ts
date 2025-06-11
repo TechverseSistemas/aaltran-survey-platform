@@ -6,16 +6,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     companyId: string;
     employeeId: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
-  try {
-    const { companyId, employeeId } = params;
+  const { companyId, employeeId } = await params;
 
+  try {
     const employeeRef = db
       .collection('companies')
       .doc(companyId)
@@ -72,14 +72,15 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(fullEmployeeData, { status: 200 });
   } catch (error) {
-    console.error(`Erro ao buscar funcionário ${params.employeeId}:`, error);
+    console.error(`Erro ao buscar funcionário ${employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest, { params }: RouteContext) {
+  const { companyId, employeeId } = await params;
+
   try {
-    const { companyId, employeeId } = params;
     const rawData = await request.json();
 
     const validatedData = employeeUpdateSchema.parse(rawData);
@@ -110,14 +111,15 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       );
     }
-    console.error(`Erro ao atualizar funcionário ${params.employeeId}:`, error);
+    console.error(`Erro ao atualizar funcionário ${employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
+  const { companyId, employeeId } = await params;
+
   try {
-    const { companyId, employeeId } = params;
     const employeeRef = db
       .collection('companies')
       .doc(companyId)
@@ -133,7 +135,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Erro ao deletar funcionário ${params.employeeId}:`, error);
+    console.error(`Erro ao deletar funcionário ${employeeId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
