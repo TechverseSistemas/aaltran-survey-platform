@@ -1,24 +1,8 @@
 import { db } from '@/lib/firebase';
+import { companyUpdateSchema } from '@/schemas/companies';
 import { FieldValue } from 'firebase-admin/firestore';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-
-const companyUpdateSchema = z
-  .object({
-    cnpj: z.string().min(14).max(18).optional(),
-    fantasy_name: z.string().min(1).optional(),
-    full_address: z.string().min(1).optional(),
-    owner: z.string().min(1).optional(),
-    focal_point: z
-      .object({
-        name: z.string().min(1).optional(),
-        email: z.string().email().optional(),
-        phone: z.string().min(1).optional(),
-      })
-      .partial()
-      .optional(),
-  })
-  .partial();
 
 interface RouteContext {
   params: Promise<{
@@ -26,11 +10,7 @@ interface RouteContext {
   }>;
 }
 
-/**
- * @method GET
- * @description Busca os dados de uma empresa específica.
- */
-export async function GET(request: Request, { params }: RouteContext) {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   const { companyId } = await params;
 
   try {
@@ -41,23 +21,18 @@ export async function GET(request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: 'Empresa não encontrada.' }, { status: 404 });
     }
 
-    return NextResponse.json({ id: docSnap.id, ...docSnap.data() }, { status: 200 });
+    return NextResponse.json({ id: docSnap.id, ...docSnap.data() });
   } catch (error) {
     console.error(`Erro ao buscar empresa ${companyId}:`, error);
     return NextResponse.json({ error: 'Ocorreu um erro inesperado no servidor.' }, { status: 500 });
   }
 }
 
-/**
- * @method PUT
- * @description Atualiza os dados de uma empresa específica.
- */
-export async function PUT(request: Request, { params }: RouteContext) {
+export async function PUT(request: NextRequest, { params }: RouteContext) {
   const { companyId } = await params;
 
   try {
     const rawData = await request.json();
-
     const validatedData = companyUpdateSchema.parse(rawData);
 
     if (Object.keys(validatedData).length === 0) {
@@ -71,14 +46,13 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      return NextResponse.json({ error: 'Empresa não encontrada.' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Empresa não encontrada para atualizar.' },
+        { status: 404 }
+      );
     }
 
-    const dataToUpdate = {
-      ...validatedData,
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-
+    const dataToUpdate = { ...validatedData, updatedAt: FieldValue.serverTimestamp() };
     await docRef.update(dataToUpdate);
 
     return NextResponse.json({ message: `Empresa ${companyId} atualizada com sucesso.` });
@@ -95,11 +69,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
   }
 }
 
-/**
- * @method DELETE
- * @description Deleta uma empresa específica.
- */
-export async function DELETE(request: Request, { params }: RouteContext) {
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
   const { companyId } = await params;
 
   try {
@@ -107,14 +77,13 @@ export async function DELETE(request: Request, { params }: RouteContext) {
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      return NextResponse.json({ error: 'Empresa não encontrada.' }, { status: 404 });
+      return NextResponse.json({ error: 'Empresa não encontrada para deletar.' }, { status: 404 });
     }
 
-    // IMPORTANTE: Deletar um documento NÃO deleta suas subcoleções.
-    // Para deletar funcionários, departamentos, etc., associados a esta empresa,
-    // você DEVE usar uma Cloud Function ou a extensão "Delete User Data" do Firebase
-    // que é acionada pelo evento de exclusão deste documento.
-    // A lógica abaixo apaga APENAS o documento da empresa.
+    // ATENÇÃO: A exclusão de um documento NÃO exclui suas subcoleções (employees, departments, etc.).
+    // Isso pode deixar dados órfãos no seu banco.
+    // Para uma exclusão completa em cascata, é necessário usar uma Cloud Function ou a extensão
+    // "Delete User Data" do Firebase, que pode ser adaptada para limpar subcoleções.
 
     await docRef.delete();
 
