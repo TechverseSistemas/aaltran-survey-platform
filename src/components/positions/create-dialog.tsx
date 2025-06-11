@@ -29,7 +29,10 @@ export default function CreatePositionDialog() {
   const { selectedCompany } = useSelectedCompanyStore();
   const { selectedDepartment } = useSelectedDepartmentStore();
 
-  const { mutate: CreatePosition } = useCreatePosition(selectedCompany?.id, selectedDepartment?.id);
+  const { mutateAsync: CreatePosition, isPending } = useCreatePosition(
+    selectedCompany?.id,
+    selectedDepartment?.id
+  );
 
   const form = useForm<z.infer<typeof positionSchema>>({
     resolver: zodResolver(positionSchema),
@@ -46,9 +49,10 @@ export default function CreatePositionDialog() {
     }
   }
 
-  function onSubmit(values: z.infer<typeof positionSchema>) {
+  async function onSubmit(values: z.infer<typeof positionSchema>) {
     try {
-      CreatePosition(values);
+      await CreatePosition(values);
+
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
@@ -94,7 +98,9 @@ export default function CreatePositionDialog() {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Criar Cargo</Button>
+              <Button disabled={isPending} type="submit">
+                Criar Cargo
+              </Button>
             </DialogFooter>
           </form>
         </Form>

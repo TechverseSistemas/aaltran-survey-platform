@@ -16,6 +16,7 @@ import { useDeleteEmployee } from '@/hooks/use-employees';
 import { useSelectedCompanyStore } from '@/store/selected-company';
 import { Employee } from '@/types/employees';
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   employee: Employee;
@@ -24,10 +25,30 @@ interface Props {
 export default function DeleteEmployeeDialog({ employee }: Props) {
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const { mutate: DeleteEmployee, isPending } = useDeleteEmployee(
+  const { mutateAsync: DeleteEmployee, isPending } = useDeleteEmployee(
     selectedCompany?.id,
     employee?.id
   );
+
+  async function handleDelete() {
+    if (!selectedCompany || !employee) {
+      return;
+    }
+
+    try {
+      await DeleteEmployee();
+
+      toast.success('Funcionário excluído com sucesso!');
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast.error(
+        'Ocorreu um erro ao excluir o funcionário. Por favor, tente novamente mais tarde.',
+        {
+          description: error instanceof Error ? error.message : 'Erro desconhecido',
+        }
+      );
+    }
+  }
 
   return (
     <AlertDialog>
@@ -51,7 +72,7 @@ export default function DeleteEmployeeDialog({ employee }: Props) {
 
           <AlertDialogAction
             disabled={isPending}
-            onClick={() => DeleteEmployee()}
+            onClick={handleDelete}
             className="bg-red-600 hover:bg-red-700"
           >
             Excluir

@@ -9,11 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import DeleteEmployeeDialog from './delete-dialog';
 import EditEmployeeDialog from './edit-dialog';
 import { Employee } from '@/types/employees';
+import { toast } from 'sonner';
 
 export default function EmployeesList() {
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const { data: employees } = useGetEmployees(selectedCompany?.id);
+  const { data: employees, isError, error } = useGetEmployees(selectedCompany?.id);
 
   function getEmployeeInitials(employee: Employee) {
     const names = employee.name.trim().split(' ');
@@ -23,6 +24,19 @@ export default function EmployeesList() {
     }
 
     return names[0][0] + names[names.length - 1][0];
+  }
+
+  if (isError) {
+    console.log(error);
+    toast.error(`${error.message ?? 'Ocorreu um erro ao carregar funcionários'}`, {
+      description: 'Tente novamente mais tarde.',
+      action: {
+        label: 'Recarregar',
+        onClick: () => {
+          window.location.reload();
+        },
+      },
+    });
   }
 
   return (

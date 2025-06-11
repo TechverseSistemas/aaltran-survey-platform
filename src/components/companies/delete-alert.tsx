@@ -16,7 +16,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function DeleteAlert({ company }: { company: Company }) {
   const queryClient = useQueryClient();
-  const { mutate: handleDelete } = useMutation({
+  const { mutateAsync: handleDelete, isPending } = useMutation({
     mutationFn: async (companyId: string) => {
       const response = await fetch('/api/companies', {
         method: 'DELETE',
@@ -51,6 +51,7 @@ export default function DeleteAlert({ company }: { company: Company }) {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
+            disabled={isPending}
             onClick={async () => {
               handleDelete(company.id ?? '');
             }}

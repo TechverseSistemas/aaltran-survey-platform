@@ -43,6 +43,7 @@ import { CalendarIcon, Edit } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
+import { toast } from 'sonner';
 import z from 'zod';
 
 interface Props {
@@ -70,7 +71,10 @@ export default function EditEmployeeDialog({ employee }: Props) {
 
   const watchedDepartmentId = form.watch('departmentId');
 
-  const { mutate: CreateEmployee } = useUpdateEmployee(selectedCompany?.id, employee?.id);
+  const { mutateAsync: CreateEmployee, isPending } = useUpdateEmployee(
+    selectedCompany?.id,
+    employee?.id
+  );
   const { data: departments } = useGetDepartments(selectedCompany?.id);
   const { data: positions } = useGetPositions(selectedCompany?.id, watchedDepartmentId);
 
@@ -85,10 +89,15 @@ export default function EditEmployeeDialog({ employee }: Props) {
   function onSubmit(values: z.infer<typeof employeeUpdateSchema>) {
     try {
       CreateEmployee(values);
+
       setIsDialogOpen(false);
       form.reset();
+      toast.success('Funcionário editado com sucesso!');
     } catch (error) {
       console.error('Erro ao criar funcionário:', error);
+      toast.error('Ocorreu um erro ao editar o funcionário. Tente novamente mais tarde.', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
     }
   }
 
@@ -362,12 +371,12 @@ export default function EditEmployeeDialog({ employee }: Props) {
                       </SelectTrigger>
 
                       <SelectContent>
-                        <SelectItem value="ensino_fundamental">Ensino Fundamental</SelectItem>
-                        <SelectItem value="ensino_medio">Ensino Médio</SelectItem>
-                        <SelectItem value="ensino_superior">Ensino Superior</SelectItem>
-                        <SelectItem value="pos_graduacao">Pós-Graduação</SelectItem>
-                        <SelectItem value="mestrado">Mestrado</SelectItem>
-                        <SelectItem value="doutorado">Doutorado</SelectItem>
+                        <SelectItem value="Ensino Fundamental">Ensino Fundamental</SelectItem>
+                        <SelectItem value="Ensino Médio">Ensino Médio</SelectItem>
+                        <SelectItem value="Ensino Superior">Ensino Superior</SelectItem>
+                        <SelectItem value="Pós-Graduação">Pós-Graduação</SelectItem>
+                        <SelectItem value="Mestrado">Mestrado</SelectItem>
+                        <SelectItem value="Doutorado">Doutorado</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -396,7 +405,9 @@ export default function EditEmployeeDialog({ employee }: Props) {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Editar Funcionário</Button>
+              <Button disabled={isPending} type="submit">
+                Editar Funcionário
+              </Button>
             </DialogFooter>
           </form>
         </Form>

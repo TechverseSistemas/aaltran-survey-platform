@@ -1,11 +1,11 @@
 export type Gender = 'Masculino' | 'Feminino';
 export type Scholarity =
-  | 'ensino_fundamental'
-  | 'ensino_medio'
-  | 'ensino_superior'
-  | 'pos_graduacao'
-  | 'mestrado'
-  | 'doutorado';
+  | 'Ensino Fundamental'
+  | 'Ensino Médio'
+  | 'Ensino Superior'
+  | 'Pós-Graduação'
+  | 'Mestrado'
+  | 'Doutorado';
 
 export interface Employee {
   id: string;

@@ -31,7 +31,10 @@ export default function EditDepartmentDialog({ department }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const { mutate: CreateDepartment } = useUpdateDepartment(selectedCompany?.id, department?.id);
+  const { mutateAsync: CreateDepartment, isPending } = useUpdateDepartment(
+    selectedCompany?.id,
+    department?.id
+  );
 
   const form = useForm<z.infer<typeof departmentSchema>>({
     resolver: zodResolver(departmentSchema),
@@ -48,9 +51,10 @@ export default function EditDepartmentDialog({ department }: Props) {
     }
   }
 
-  function onSubmit(values: z.infer<typeof departmentSchema>) {
+  async function onSubmit(values: z.infer<typeof departmentSchema>) {
     try {
-      CreateDepartment(values);
+      await CreateDepartment(values);
+
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
@@ -103,7 +107,9 @@ export default function EditDepartmentDialog({ department }: Props) {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Editar Departamento</Button>
+              <Button disabled={isPending} type="submit">
+                Editar Departamento
+              </Button>
             </DialogFooter>
           </form>
         </Form>

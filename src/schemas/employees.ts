@@ -32,12 +32,12 @@ const employeeBaseSchema = z.object({
   }),
   scholarity: z.enum(
     [
-      'ensino_fundamental',
-      'ensino_medio',
-      'ensino_superior',
-      'pos_graduacao',
-      'mestrado',
-      'doutorado',
+      'Ensino Fundamental',
+      'Ensino Médio',
+      'Ensino Superior',
+      'Pós-Graduação',
+      'Mestrado',
+      'Doutorado',
     ],
     { required_error: 'Escolaridade é obrigatória' }
   ),

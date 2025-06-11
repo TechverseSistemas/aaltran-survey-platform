@@ -1,17 +1,5 @@
 'use client';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -29,17 +17,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { Company } from '@/types/companies';
+import { useCreateCompanyMutation } from '@/hooks/use-companies';
 import { cn } from '@/lib/utils';
+import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
+import { Company } from '@/types/companies';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, Mail, Phone, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
-import { z } from 'zod';
-import { useCreateCompanyMutation } from '@/hooks/use-companies';
-import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
 
 const cnpjMask = '00.000.000/0000-00';
 
@@ -49,7 +36,7 @@ export default function AddCompanyDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const queryClient = useQueryClient();
-  const { mutate: handleCreate } = useCreateCompanyMutation();
+  const { mutateAsync: handleCreate, isPending } = useCreateCompanyMutation();
 
   const shadcnInputClassName =
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
@@ -69,7 +56,7 @@ export default function AddCompanyDialog() {
   });
 
   async function onSubmit(values: CompanyFormData) {
-    handleCreate(values);
+    await handleCreate(values);
     form.reset();
     setIsDialogOpen(false);
   }
@@ -279,8 +266,8 @@ export default function AddCompanyDialog() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Salvando...' : 'Criar Empresa'}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Salvando...' : 'Criar Empresa'}
               </Button>
             </div>
           </form>

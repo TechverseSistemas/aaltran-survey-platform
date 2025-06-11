@@ -1,17 +1,5 @@
 'use client';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -29,12 +17,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { Company } from '@/types/companies';
 import { cn } from '@/lib/utils';
+import { Company } from '@/types/companies';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, Mail, Phone, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { z } from 'zod';
@@ -82,7 +69,7 @@ export default function EditCompanyDialog({ company }: { company: Company | null
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const queryClient = useQueryClient();
-  const { mutate: handleEdit } = useMutation({
+  const { mutateAsync: handleEdit, isPending } = useMutation({
     mutationFn: async (editValues: Company) => {
       const response = await fetch(`/api/companies/`, {
         method: 'PATCH',
@@ -343,8 +330,8 @@ export default function EditCompanyDialog({ company }: { company: Company | null
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Salvando...' : 'Salvar Alterações'}
               </Button>
             </div>
           </form>

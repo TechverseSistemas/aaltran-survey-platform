@@ -34,7 +34,7 @@ export default function EditPositionDialog({ position }: Props) {
   const { selectedDepartment } = useSelectedDepartmentStore();
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const { mutate: CreatePosition } = useUpdatePosition(
+  const { mutateAsync: CreatePosition, isPending } = useUpdatePosition(
     selectedCompany?.id,
     selectedDepartment?.id,
     position?.id
@@ -55,9 +55,10 @@ export default function EditPositionDialog({ position }: Props) {
     }
   }
 
-  function onSubmit(values: z.infer<typeof positionSchema>) {
+  async function onSubmit(values: z.infer<typeof positionSchema>) {
     try {
-      CreatePosition(values);
+      await CreatePosition(values);
+
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
@@ -110,7 +111,9 @@ export default function EditPositionDialog({ position }: Props) {
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
 
-              <Button type="submit">Editar Cargo</Button>
+              <Button disabled={isPending} type="submit">
+                Editar Cargo
+              </Button>
             </DialogFooter>
           </form>
         </Form>

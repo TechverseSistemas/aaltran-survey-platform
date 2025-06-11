@@ -1,10 +1,10 @@
 import { db } from '@/lib/firebase';
 import { employeeCreateSchema } from '@/schemas/employees';
 import { Employee } from '@/types/employees';
-import { FieldValue, QuerySnapshot } from 'firebase-admin/firestore';
+import bcrypt from 'bcrypt';
+import { FieldValue } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import bcrypt from 'bcrypt';
 
 interface RouteContext {
   params: Promise<{
@@ -25,21 +25,22 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const rawPassword = validatedData.cpf.replace(/\D/g, '');
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-    let existingEmployee: QuerySnapshot;
-    try {
-      const employeeQuery = db.collectionGroup('employees').where('login', '==', newLogin).limit(1);
-      existingEmployee = await employeeQuery.get();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (queryError: any) {
-      console.warn(
-        'Query de verificação de login falhou (pode ser a primeira execução):',
-        queryError.message
+    const cpfQuery = db.collectionGroup('employees').where('cpf', '==', validatedData.cpf).limit(1);
+    const existingCpf = await cpfQuery.get();
+    if (!existingCpf.empty) {
+      return NextResponse.json(
+        { error: `O CPF '${validatedData.cpf}' já está cadastrado.` },
+        { status: 409 }
       );
-      existingEmployee = { empty: true } as QuerySnapshot;
     }
 
-    if (!existingEmployee.empty) {
-      return NextResponse.json({ error: 'Este nome de usuário já está em uso.' }, { status: 409 });
+    const loginQuery = db.collectionGroup('employees').where('login', '==', newLogin).limit(1);
+    const existingLogin = await loginQuery.get();
+    if (!existingLogin.empty) {
+      return NextResponse.json(
+        { error: `O login '${newLogin}' (gerado a partir do nome) já está em uso.` },
+        { status: 409 }
+      );
     }
 
     const employeeToSave = {

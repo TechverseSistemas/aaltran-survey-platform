@@ -24,7 +24,7 @@ interface Props {
 export default function DeleteDepartmentDialog({ department }: Props) {
   const { selectedCompany } = useSelectedCompanyStore();
 
-  const { mutate: DeleteDepartment, isPending } = useDeleteDepartment(
+  const { mutateAsync: DeleteDepartment, isPending } = useDeleteDepartment(
     selectedCompany?.id,
     department?.id
   );

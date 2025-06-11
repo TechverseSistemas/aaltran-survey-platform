@@ -1,14 +1,12 @@
-'use client'
+'use client';
 import EditCompanyDialog from '@/components/companies/edit-company-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Company } from '@/types/companies';
-import { useQuery } from '@tanstack/react-query';
+import { useGetCompaniesQuery } from '@/hooks/use-companies';
 import { Building2, Mail, Phone } from 'lucide-react';
 import DeleteAlert from './delete-alert';
-import { useGetCompaniesQuery } from '@/hooks/use-companies';
 
 export default function CompaniesList() {
-  const { data } = useGetCompaniesQuery()
+  const { data } = useGetCompaniesQuery();
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {data?.map((company) => (

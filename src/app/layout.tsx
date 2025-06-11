@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import Providers from '@/shared/providers';
+import { Toaster } from 'sonner';
 
 const montSerrat = Montserrat({
   subsets: ['latin'],
@@ -21,6 +22,8 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${montSerrat.className} antialiased`}>
         <Providers>{children}</Providers>
+
+        <Toaster richColors duration={5000} />
       </body>
     </html>
   );

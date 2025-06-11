@@ -14,6 +14,11 @@ export function useGetEmployees(companyId?: string) {
         },
       });
 
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ocorreu uma falha ao buscar os funcionários.');
+      }
+
       return response.json();
     },
     staleTime: 1000 * 60 * 5,
@@ -31,6 +36,11 @@ export function useGetEmployeeById(employeeId: string, companyId?: string) {
           'Content-Type': 'application/json',
         },
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ocorreu uma falha ao buscar o funcionário.');
+      }
 
       return response.json();
     },
@@ -51,6 +61,12 @@ export function useCreateEmployee(companyId?: string) {
         },
         body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+
+        throw new Error(error.error || 'Ocorreu uma falha ao criar o funcionário.');
+      }
 
       return response.json();
     },
@@ -73,6 +89,11 @@ export function useUpdateEmployee(companyId?: string, employeeId?: string) {
         body: JSON.stringify(data),
       });
 
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ocorreu uma falha ao atualizar o funcionário.');
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -92,6 +113,11 @@ export function useDeleteEmployee(companyId?: string, employeeId?: string) {
           'Content-Type': 'application/json',
         },
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Ocorreu uma falha ao excluir o funcionário.');
+      }
 
       if (response.status === 204) {
         return null;

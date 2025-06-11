@@ -26,7 +26,7 @@ export default function DeletePositionDialog({ position }: Props) {
   const { selectedCompany } = useSelectedCompanyStore();
   const { selectedDepartment } = useSelectedDepartmentStore();
 
-  const { mutate: DeletePosition, isPending } = useDeletePosition(
+  const { mutateAsync: DeletePosition, isPending } = useDeletePosition(
     selectedCompany?.id,
     selectedDepartment?.id,
     position?.id
