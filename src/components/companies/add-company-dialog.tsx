@@ -20,9 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCreateCompanyMutation } from '@/hooks/use-companies';
 import { cn } from '@/lib/utils';
 import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
-import { Company } from '@/types/companies';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -34,8 +32,7 @@ const phoneMaskDefinition = [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-000
 
 export default function AddCompanyDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const queryClient = useQueryClient();
+
   const { mutateAsync: handleCreate, isPending } = useCreateCompanyMutation();
 
   const shadcnInputClassName =
@@ -65,7 +62,6 @@ export default function AddCompanyDialog() {
       <DialogTrigger asChild>
         <Button
           onClick={() => {
-            setSelectedCompany(null);
             form.reset({
               cnpj: '',
               fantasy_name: '',

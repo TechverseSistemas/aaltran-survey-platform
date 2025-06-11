@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '@/lib/firebase';
 import bcrypt from 'bcrypt';
 import { FieldValue } from 'firebase-admin/firestore';

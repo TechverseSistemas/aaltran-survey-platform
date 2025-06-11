@@ -1,16 +1,12 @@
 'use client';
 
-import type React from 'react';
-import type { Company } from '@/types/companies';
-import type { Employee } from '@/types/employees';
-import { useState, useCallback, useRef } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -26,12 +22,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useQuery } from '@tanstack/react-query';
-import { parseExcel } from './parseFile';
-import { set } from 'react-hook-form';
-import { useCreateEmployee } from '@/hooks/use-employees';
 import { useImportXml } from '@/hooks/use-import';
+import type { Company } from '@/types/companies';
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircle, CheckCircle, Download, FileSpreadsheet, Upload, X } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -39,7 +35,6 @@ export default function ImportPage() {
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { mutate: createEmployee } = useCreateEmployee();
   type ImportResults = {
     total: number;
     sucesso: number;
@@ -47,7 +42,7 @@ export default function ImportPage() {
     jaCadastrados: number;
   };
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
-  const { mutate: importXml } = useImportXml();
+  const { mutateAsync: importXml } = useImportXml();
   const { data } = useQuery({
     queryKey: ['companies'],
     queryFn: fetchCompanies,
@@ -102,7 +97,7 @@ export default function ImportPage() {
     }
   }, []);
 
-const handleImport = useCallback(async () => {
+  const handleImport = useCallback(async () => {
     if (!selectedFile || !selectedCompany) {
       // You might want to show a warning to the user here
       return;
@@ -122,7 +117,7 @@ const handleImport = useCallback(async () => {
       });
 
       // Call the mutation with FormData
-      const result = await importXml(formData, {
+      await importXml(formData, {
         onSuccess: (data) => {
           setImportProgress(100);
           setImportResults({
@@ -147,9 +142,8 @@ const handleImport = useCallback(async () => {
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
-        }
+        },
       });
-
     } catch (error) {
       console.error('Erro ao processar o arquivo:', error);
       setImportResults({
@@ -161,7 +155,7 @@ const handleImport = useCallback(async () => {
       setIsImporting(false); // Ensure loading state is reset even if catch block is hit directly
     }
     // Remove the finally block, as onSuccess/onError/onSettled in mutate options handle cleanup
-  }, [selectedFile, selectedCompany, importXml])
+  }, [selectedFile, selectedCompany, importXml]);
 
   const downloadTemplate = () => {
     const link = document.createElement('a');

@@ -13,7 +13,7 @@ export function useImportXml() {
       return response.json();
     },
     onSuccess: () => {
-      console.log('Funcionários importados com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
     },
   });
 }

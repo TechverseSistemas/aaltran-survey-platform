@@ -38,6 +38,7 @@ export interface SurveyResponse {
   id: string;
   assessorId: string;
   assesseeId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   answers: Record<string, any>;
   submittedAt: FirestoreTimestamp;
 }
