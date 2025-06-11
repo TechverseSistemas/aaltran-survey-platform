@@ -10,9 +10,9 @@ export type Scholarity =
 export interface Employee {
   id: string;
   departmentId: string;
-  departmentName?: string;
+  departmentName: string;
   positionId: string;
-  positionName?: string;
+  positionName: string;
   name: string;
   login: string;
   password?: string;
