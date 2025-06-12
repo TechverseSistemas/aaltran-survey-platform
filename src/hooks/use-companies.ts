@@ -1,6 +1,7 @@
-import { CompanyFormData } from '@/schemas/companies';
+import { companyCreateSchema } from '@/schemas/companies';
 import { Company } from '@/types/companies';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
 
 export function useGetCompaniesQuery() {
   return useQuery<Company[]>({
@@ -22,7 +23,7 @@ export function useGetCompaniesQuery() {
 export function useCreateCompanyMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (values: CompanyFormData) => {
+    mutationFn: async (values: z.infer<typeof companyCreateSchema>) => {
       const response = await fetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

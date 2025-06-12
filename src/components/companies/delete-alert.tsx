@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+
 import { Button } from '@/components/ui/button';
 import { Company } from '@/types/companies';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,16 +19,19 @@ import { toast } from 'sonner';
 export default function DeleteAlert({ company }: { company: Company }) {
   const queryClient = useQueryClient();
   const { mutateAsync: handleDeleteMutation, isPending } = useMutation({
-    mutationFn: async (companyId: string) => {
+    mutationFn: async () => {
       const response = await fetch(`/api/companies/${company?.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: companyId }),
       });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erro ao deletar empresa');
       }
+      if (response.status === 204) {
+        return null;
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -35,9 +39,9 @@ export default function DeleteAlert({ company }: { company: Company }) {
     },
   });
 
-  async function handleDelete(companyId: string) {
+  async function handleDelete() {
     try {
-      await handleDeleteMutation(companyId);
+      await handleDeleteMutation();
       toast.success('Empresa excluída com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir Empresa:', error);
@@ -66,7 +70,7 @@ export default function DeleteAlert({ company }: { company: Company }) {
           <AlertDialogAction
             disabled={isPending}
             onClick={async () => {
-              handleDelete(company.id ?? '');
+              handleDelete();
             }}
           >
             Excluir

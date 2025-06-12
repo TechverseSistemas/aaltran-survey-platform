@@ -19,13 +19,14 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateCompanyMutation } from '@/hooks/use-companies';
 import { cn } from '@/lib/utils';
-import { CompanyFormData, companyFormSchema } from '@/schemas/companies';
+import { companyCreateSchema } from '@/schemas/companies';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { toast } from 'sonner';
+import z from 'zod';
 
 const cnpjMask = '00.000.000/0000-00';
 
@@ -38,8 +39,8 @@ export default function AddCompanyDialog() {
 
   const shadcnInputClassName =
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
-  const form = useForm<CompanyFormData>({
-    resolver: zodResolver(companyFormSchema),
+  const form = useForm<z.infer<typeof companyCreateSchema>>({
+    resolver: zodResolver(companyCreateSchema),
     defaultValues: {
       cnpj: '',
       fantasy_name: '',
@@ -53,7 +54,7 @@ export default function AddCompanyDialog() {
     },
   });
 
-  async function onSubmit(values: CompanyFormData) {
+  async function onSubmit(values: z.infer<typeof companyCreateSchema>) {
     try {
       await handleCreate(values);
       form.reset();
