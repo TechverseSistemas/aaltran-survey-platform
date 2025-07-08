@@ -108,14 +108,17 @@ export default function CreateEmployeeDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="no-scrollbar h-full max-h-[80vh] w-full max-w-md overflow-y-scroll">
+      <DialogContent className="h-full max-h-[80vh] w-full max-w-md">
         <DialogHeader>
           <DialogTitle>Novo Funcionário</DialogTitle>
           <DialogDescription>Preencha os dados do colaborador</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="no-scrollbar space-y-4 overflow-y-scroll"
+          >
             <FormField
               control={form.control}
               name="name"

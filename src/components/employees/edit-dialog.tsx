@@ -125,14 +125,17 @@ export default function EditEmployeeDialog({ employee }: Props) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="h-full max-h-[80vh] w-full max-w-md">
         <DialogHeader>
           <DialogTitle>Editar Funcionário</DialogTitle>
           <DialogDescription>Preencha os dados do funcionário</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="no-scrollbar space-y-4 overflow-y-scroll"
+          >
             <FormField
               control={form.control}
               name="name"

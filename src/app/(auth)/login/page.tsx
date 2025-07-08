@@ -38,7 +38,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-md border">
+    <Card className="w-full max-w-md border py-12">
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">Bem-vindo</CardTitle>
 
@@ -53,37 +53,39 @@ export default function LoginPage() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="mx-auto flex w-full max-w-sm flex-col items-center space-y-8"
           >
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Usuário</FormLabel>
+            <div className="w-full space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Usuário</FormLabel>
 
-                  <FormControl>
-                    <Input placeholder="Informe seu usuário" {...field} />
-                  </FormControl>
+                    <FormControl>
+                      <Input placeholder="Informe seu usuário" {...field} />
+                    </FormControl>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Senha</FormLabel>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Senha</FormLabel>
 
-                  <FormControl>
-                    <Input type="password" placeholder="Informe sua senha" {...field} />
-                  </FormControl>
+                    <FormControl>
+                      <Input type="password" placeholder="Informe sua senha" {...field} />
+                    </FormControl>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -104,8 +106,8 @@ export default function LoginPage() {
               )}
             />
 
-            <Button className="w-full bg-teal-500 hover:bg-teal-600" type="submit">
-              ENTRAR
+            <Button className="w-full" type="submit">
+              Entrar
             </Button>
           </form>
         </Form>

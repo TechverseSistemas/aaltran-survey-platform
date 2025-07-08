@@ -32,7 +32,7 @@ export default function SelectDepartment() {
   return (
     <Select onValueChange={handleDepartmentChange} value={selectedDepartment?.id || ''}>
       <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Empresa" />
+        <SelectValue placeholder="Departamento" />
       </SelectTrigger>
 
       <SelectContent>

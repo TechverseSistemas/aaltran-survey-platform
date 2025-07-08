@@ -1,4 +1,5 @@
 'use client';
+
 import { LogOut, Settings, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -11,47 +12,59 @@ import {
 } from './ui/dropdown-menu';
 import { SidebarTrigger } from './ui/sidebar';
 import SelectCompany from './select-company';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
+  const router = useRouter();
+
+  function handleLogout() {
+    router.replace('login');
+  }
+
   return (
     <header className="flex h-16 items-center justify-between gap-2 border-b p-4">
-      <SidebarTrigger variant={'ghost'} size={'icon'} />
+      <div className="container flex items-center justify-between">
+        <SidebarTrigger variant={'ghost'} size={'icon'} />
 
-      <div className="flex items-center gap-2">
-        <SelectCompany />
+        <div className="flex items-center gap-2">
+          <SelectCompany />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="cursor-pointer" asChild>
+              <Avatar>
+                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
 
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" />
-              <span>Meu Perfil</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configurações</span>
-            </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" />
+                <span>Meu Perfil</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Configurações</span>
+              </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="cursor-pointer text-red-500 dark:text-red-400">
-              <LogOut className="mr-2 h-4 w-4 text-red-500 dark:text-red-400" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer text-red-500 dark:text-red-400"
+              >
+                <LogOut className="mr-2 h-4 w-4 text-red-500 dark:text-red-400" />
 
-              <span>Sair</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   );
