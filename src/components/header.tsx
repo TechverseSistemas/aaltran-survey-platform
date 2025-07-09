@@ -13,11 +13,14 @@ import {
 import { SidebarTrigger } from './ui/sidebar';
 import SelectCompany from './select-company';
 import { useRouter } from 'next/navigation';
+import { useAuthContext } from "@/context/authContext";
 
 export default function Header() {
   const router = useRouter();
+  const { logout } = useAuthContext();
 
-  function handleLogout() {
+  async function handleLogout() {
+    await logout();
     router.replace('login');
   }
 
