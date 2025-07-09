@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import signIn from '@/lib/firebase/signIn';
+import signIn from '@/lib/firebase-auth/signIn';
 import { useRouter } from 'next/navigation';
 
 const loginFormSchema = z.object({
@@ -24,7 +24,6 @@ const loginFormSchema = z.object({
   password: z.string().nonempty('Senha é obrigatória'),
   rememberMe: z.boolean(),
 });
-
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +39,7 @@ export default function LoginPage() {
   function onSubmit(values: z.infer<typeof loginFormSchema>) {
 
     console.log(values);
-    signIn(values.username, values.password)
+    signIn(values.username, values.password, values.rememberMe)
       .then(() => {
         console.log('Usuário autenticado com sucesso');
         return router.push('/');
@@ -126,6 +125,6 @@ export default function LoginPage() {
           </form>
         </Form>
       </CardContent>
-  </Card>
+    </Card>
   );
 }
