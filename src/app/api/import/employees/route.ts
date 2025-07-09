@@ -162,17 +162,17 @@ export async function POST(request: NextRequest) {
         const rawPassword = employeePayload.cpf.replace(/\D/g, '');
         const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
-        const cpfQuery = db
-          .collectionGroup('employees')
-          .where('cpf', '==', employeePayload.cpf)
-          .limit(1);
-        const existingCpf = await cpfQuery.get();
-        if (!existingCpf.empty) {
-          return NextResponse.json(
-            { error: `O CPF '${employeePayload.cpf}' já está cadastrado.` },
-            { status: 409 }
-          );
-        }
+        // const cpfQuery = db
+        //   .collectionGroup('employees')
+        //   .where('cpf', '==', employeePayload.cpf)
+        //   .limit(1);
+        // const existingCpf = await cpfQuery.get();
+        // if (!existingCpf.empty) {
+        //   return NextResponse.json(
+        //     { error: `O CPF '${employeePayload.cpf}' já está cadastrado.` },
+        //     { status: 409 }
+        //   );
+        // }
 
         // const loginQuery = db.collectionGroup('employees').where('login', '==', newLogin).limit(1);
         // const existingLogin = await loginQuery.get();
